@@ -1,52 +1,53 @@
 package database
 
 import (
-	"database/sql"
-	"fmt"
 	"log"
 	"os"
+	"sync"
 
-	_ "github.com/lib/pq"
+	"gorm.io/driver/postgres"
+	"gorm.io/gorm"
 )
 
 type Service interface {
 	Close() error
+	DB() *gorm.DB
 }
 
 type service struct {
-	db *sql.DB
+	db *gorm.DB
 }
 
 var (
 	dbInstance *service
+	once       sync.Once
+	initErr    error
 )
 
 func New() Service {
-	if dbInstance != nil {
-		return dbInstance
-	}
+	once.Do(func() {
+		dsn := os.Getenv("DATABASE_URL")
 
-	connStr := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
-		os.Getenv("DB_HOST"),
-		os.Getenv("DB_PORT"),
-		os.Getenv("DB_USER"),
-		os.Getenv("DB_PASSWORD"),
-		os.Getenv("DB_NAME"),
-	)
+		db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
+		if err != nil {
+			initErr = err
+			log.Fatalf("Не удалось подключиться к базе данных: %v", err)
+		}
 
-	db, err := sql.Open("postgres", connStr)
-	if err != nil {
-		log.Fatalf("Невозможно подключиться к БД: %v", err)
-	}
+		dbInstance = &service{db: db}
+	})
 
-	if err := db.Ping(); err != nil {
-		log.Fatalf("Ошибка ответа БД: %v", err)
-	}
-
-	dbInstance = &service{db: db}
 	return dbInstance
 }
 
 func (s *service) Close() error {
-	return s.db.Close()
+	sqlDB, err := s.db.DB()
+	if err != nil {
+		return err
+	}
+	return sqlDB.Close()
+}
+
+func (s *service) DB() *gorm.DB {
+	return s.db
 }
