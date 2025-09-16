@@ -8,7 +8,7 @@ VALUES (
     'Главный',
     'Администратор',
     'Системы',
-    'admin123', -- Замените на хеш, если используете хеширование
+    '$2a$12$c7bZQ1.B8zvTkCpn8RdJg.EzPAiDPPBqgFOMHZHX3W/GFU8cnyl7u', 
     'admin@company.com',
     (SELECT id FROM roles WHERE name = 'admin')
 )

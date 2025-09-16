@@ -2,6 +2,8 @@
 
 import React, { useState } from "react";
 import { Building2 } from "lucide-react";
+import { useRouter } from "next/navigation";
+
 
 interface LoginData {
   email: string;
@@ -9,6 +11,7 @@ interface LoginData {
 }
 
 export default function LoginPage() {
+  const router = useRouter(); 
   const [form, setForm] = useState<LoginData>({ email: "", password: "" });
   const [error, setError] = useState<string | null>(null);
   const API_URL = process.env.NEXT_PUBLIC_API_URL;
@@ -22,7 +25,7 @@ export default function LoginPage() {
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     try {
-      const response = await fetch(`${API_URL}/login`, {
+      const response = await fetch(`${API_URL}/auth/login`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -36,8 +39,11 @@ export default function LoginPage() {
       }
 
       localStorage.setItem("access_token", data.access_token);
-      alert("Вход выполнен успешно!");
+      localStorage.setItem("user", JSON.stringify(data.user))
       setForm({ email: "", password: "" });
+
+      router.push("/")
+
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Произошла ошибка");
     }

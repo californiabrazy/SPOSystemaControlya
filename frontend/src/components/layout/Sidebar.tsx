@@ -5,7 +5,7 @@ import { LayoutDashboard, Folder, AlertTriangle, BarChart, Settings } from 'luci
 export default function Sidebar() {
   return (
     <aside className="w-64 bg-white text-[#657166] p-6 shadow-md">
-      <div className="text-2xl font-bold text-[#8A9D67] mb-8">СистемаКонтроля</div>
+      <div className="text-2xl font-bold flex justify-center text-[#8A9D67] mb-8">СистемаКонтроля</div>
       <nav className="space-y-2">
         <Link href="/dashboard" className="flex items-center space-x-2 p-2 hover:bg-[#99CDD8] hover:text-[#657166] rounded transition-colors">
           <LayoutDashboard size={20} />
