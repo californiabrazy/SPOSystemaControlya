@@ -4,14 +4,13 @@ import React, { useState } from "react";
 import { Building2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 
-
 interface LoginData {
   email: string;
   password: string;
 }
 
 export default function LoginPage() {
-  const router = useRouter(); 
+  const router = useRouter();
   const [form, setForm] = useState<LoginData>({ email: "", password: "" });
   const [error, setError] = useState<string | null>(null);
   const API_URL = process.env.NEXT_PUBLIC_API_URL;
@@ -39,11 +38,16 @@ export default function LoginPage() {
       }
 
       localStorage.setItem("access_token", data.access_token);
-      localStorage.setItem("user", JSON.stringify(data.user))
+      localStorage.setItem("user", JSON.stringify(data.user));
+
+      if (data.refresh_token) {
+        const expires = new Date();
+        expires.setDate(expires.getDate() + 7);
+        document.cookie = `refresh_token=${data.refresh_token}; path=/; expires=${expires.toUTCString()}; secure; samesite=strict`;
+      }
+
       setForm({ email: "", password: "" });
-
-      router.push("/")
-
+      router.push("/");
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Произошла ошибка");
     }
@@ -62,7 +66,9 @@ export default function LoginPage() {
       </div>
       <div className="w-full max-w-md rounded-xl bg-white p-8 shadow-md">
         <h1 className="mb-2 text-3xl font-bold text-[#657166] text-center">Вход</h1>
-        <p className="text-center text-[#8A9D67] mb-6">Добро пожаловать в СистемаКонтроля!</p>
+        <p className="text-center text-[#8A9D67] mb-6">
+          Добро пожаловать в СистемаКонтроля!
+        </p>
 
         {error && <p className="text-red-500 text-center mb-4">{error}</p>}
 

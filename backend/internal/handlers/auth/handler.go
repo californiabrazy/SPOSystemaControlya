@@ -21,14 +21,6 @@ func NewAuthHandler(db *gorm.DB) *AuthHandler {
 	return &AuthHandler{db: db}
 }
 
-func (h *AuthHandler) RegisterRoutes(router *gin.Engine) {
-	auth := router.Group("/auth")
-	{
-		auth.POST("/login", h.Login)
-		auth.GET("/check_token", utils.AuthMiddleware(), h.Check)
-	}
-}
-
 func (h *AuthHandler) Login(c *gin.Context) {
 	var input models.LoginInput
 	if err := c.ShouldBindJSON(&input); err != nil {
@@ -51,24 +43,59 @@ func (h *AuthHandler) Login(c *gin.Context) {
 		return
 	}
 
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"email": user.Email,
-		"id":    user.ID,
-		"exp":   time.Now().Add(time.Minute * 1).Unix(),
+	accessToken := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+		"id":  user.ID,
+		"exp": time.Now().Add(time.Minute * 1).Unix(),
 	})
 
-	tokenString, err := token.SignedString([]byte(os.Getenv("JWT_SECRET")))
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Ошибка генерации токена"})
-		return
-	}
+	refreshToken := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+		"id":  user.ID,
+		"exp": time.Now().Add(time.Hour * 24 * 7).Unix(),
+	})
+
+	accessString, _ := accessToken.SignedString([]byte(os.Getenv("JWT_SECRET")))
+	refreshString, _ := refreshToken.SignedString([]byte(os.Getenv("JWT_REFRESH_SECRET")))
 
 	c.JSON(http.StatusOK, gin.H{
-		"message":      "Вход выполнен успешно",
-		"access_token": tokenString,
+		"access_token":  accessString,
+		"refresh_token": refreshString,
 		"user": gin.H{
 			"first_name": user.FirstName,
 		},
+	})
+}
+
+func (h *AuthHandler) Refresh(c *gin.Context) {
+	var input struct {
+		RefreshToken string `json:"refresh_token"`
+	}
+
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Неверный формат"})
+		return
+	}
+
+	token, err := jwt.Parse(input.RefreshToken, func(token *jwt.Token) (interface{}, error) {
+		return []byte(os.Getenv("JWT_REFRESH_SECRET")), nil
+	})
+
+	if err != nil || !token.Valid {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Недействительный refresh token"})
+		return
+	}
+
+	claims := token.Claims.(jwt.MapClaims)
+	userID := claims["id"]
+
+	newAccess := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+		"id":  userID,
+		"exp": time.Now().Add(time.Minute * 15).Unix(),
+	})
+
+	newAccessString, _ := newAccess.SignedString([]byte(os.Getenv("JWT_SECRET")))
+
+	c.JSON(http.StatusOK, gin.H{
+		"access_token": newAccessString,
 	})
 }
 
