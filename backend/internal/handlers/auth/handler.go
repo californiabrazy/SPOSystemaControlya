@@ -29,7 +29,7 @@ func (h *AuthHandler) Login(c *gin.Context) {
 	}
 
 	var user models.User
-	if err := h.db.Where("email = ?", input.Email).First(&user).Error; err != nil {
+	if err := h.db.Preload("Role").Where("email = ?", input.Email).First(&user).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "Неверный email или пароль"})
 		} else {
@@ -44,13 +44,15 @@ func (h *AuthHandler) Login(c *gin.Context) {
 	}
 
 	accessToken := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"id":  user.ID,
-		"exp": time.Now().Add(time.Minute * 1).Unix(),
+		"id":   user.ID,
+		"role": user.Role.Name,
+		"exp":  time.Now().Add(time.Minute * 1).Unix(),
 	})
 
 	refreshToken := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"id":  user.ID,
-		"exp": time.Now().Add(time.Hour * 24 * 7).Unix(),
+		"id":   user.ID,
+		"role": user.Role.Name,
+		"exp":  time.Now().Add(time.Hour * 24 * 7).Unix(),
 	})
 
 	accessString, _ := accessToken.SignedString([]byte(os.Getenv("JWT_SECRET")))
@@ -85,14 +87,28 @@ func (h *AuthHandler) Refresh(c *gin.Context) {
 	}
 
 	claims := token.Claims.(jwt.MapClaims)
-	userID := claims["id"]
+	userID, ok := claims["id"].(float64)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Недействительный refresh token"})
+		return
+	}
+	role, ok := claims["role"].(string)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Недействительный refresh token"})
+		return
+	}
 
 	newAccess := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"id":  userID,
-		"exp": time.Now().Add(time.Minute * 15).Unix(),
+		"id":   userID,
+		"role": role,
+		"exp":  time.Now().Add(time.Minute * 3).Unix(),
 	})
 
-	newAccessString, _ := newAccess.SignedString([]byte(os.Getenv("JWT_SECRET")))
+	newAccessString, err := newAccess.SignedString([]byte(os.Getenv("JWT_SECRET")))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Ошибка генерации токена"})
+		return
+	}
 
 	c.JSON(http.StatusOK, gin.H{
 		"access_token": newAccessString,
@@ -100,5 +116,12 @@ func (h *AuthHandler) Refresh(c *gin.Context) {
 }
 
 func (h *AuthHandler) Check(c *gin.Context) {
-	c.JSON(http.StatusOK, gin.H{"message": "Токен действителен"})
+	userID, _ := c.Get("userID")
+	role, _ := c.Get("role")
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "Токен действителен",
+		"id":      userID,
+		"role":    role,
+	})
 }

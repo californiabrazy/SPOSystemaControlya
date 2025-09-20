@@ -1,6 +1,8 @@
 INSERT INTO roles (name) VALUES
 ('admin'),
-('engineer')
+('engineer'),
+('manager'),
+('leader')
 ON CONFLICT (name) DO NOTHING;
 
 INSERT INTO users (first_name, last_name, middle_name, password, email, role_id) 

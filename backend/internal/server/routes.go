@@ -3,6 +3,7 @@ package server
 import (
 	"net/http"
 
+	"systemacontrolya/internal/handlers/admin"
 	"systemacontrolya/internal/handlers/auth"
 
 	"github.com/gin-contrib/cors"
@@ -26,6 +27,10 @@ func (s *Server) RegisterRoutes() http.Handler {
 	//Login
 	authHandler := auth.NewAuthHandler(s.db.DB())
 	authHandler.RegisterRoutes(r)
+
+	//Admin Panel
+	adminHandler := admin.NewAdminHandler(s.db.DB())
+	adminHandler.RegisterRoutes(r)
 
 	return r
 }

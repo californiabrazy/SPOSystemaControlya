@@ -93,7 +93,7 @@ export default function LoginPage() {
 
           <button
             type="submit"
-            className="w-full rounded-xl bg-[#99CDD8] px-4 py-3 text-[#657166] hover:bg-[#8BBCC6] transition-colors"
+            className="w-full rounded-xl bg-[#99CDD8] px-4 py-3 text-white hover:bg-[#8BBCC6] transition-colors"
           >
             Войти
           </button>
