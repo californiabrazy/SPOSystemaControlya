@@ -12,5 +12,6 @@ func (h *AuthHandler) RegisterRoutes(router *gin.Engine) {
 		auth.POST("/login", h.Login)
 		auth.POST("/refresh", h.Refresh)
 		auth.GET("/check_token", utils.AuthMiddleware(), h.Check)
+		auth.POST("/logout", h.Logout)
 	}
 }

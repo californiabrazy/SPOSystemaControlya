@@ -24,3 +24,9 @@ type CreateUserInput struct {
 	Password   string `json:"password" binding:"required,min=6"`
 	RoleID     uint   `json:"role_id" binding:"required"`
 }
+
+type CreateProjectInput struct {
+	Name        string `json:"name" binding:"required"`
+	ManagerID   uint   `json:"manager_id" binding:"required"`
+	Description string `json:"description"`
+}

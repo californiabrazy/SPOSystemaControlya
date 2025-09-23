@@ -58,8 +58,63 @@ func (h *AdminHandler) AddUser(c *gin.Context) {
 	})
 }
 
+func (h *AdminHandler) AddProject(c *gin.Context) {
+	var input models.CreateProjectInput
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Неверный формат данных"})
+		return
+	}
+
+	project := models.Project{
+		Name:        input.Name,
+		ManagerID:   input.ManagerID,
+		Description: input.Description,
+	}
+
+	if err := h.db.Create(&project).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Не удалось создать проект"})
+		return
+	}
+}
+
+func (h *AdminHandler) AvaliableManagers(c *gin.Context) {
+	var managerRole models.Role
+	if err := h.db.Where("name = ?", "Менеджер").First(&managerRole).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Роль Менеджер не найдена"})
+		return
+	}
+
+	var availableManagers []models.User
+	err := h.db.
+		Where("role_id = ?", managerRole.ID).
+		Where("id NOT IN (?)", h.db.Model(&models.Project{}).Select("manager_id")).
+		Find(&availableManagers).Error
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Не удалось получить список менеджеров"})
+		return
+	}
+
+	c.JSON(http.StatusOK, availableManagers)
+}
+
 func (h *AdminHandler) ListRoles(c *gin.Context) {
 	var roles []models.Role
 	h.db.Find(&roles)
 	c.JSON(http.StatusOK, roles)
+}
+
+func (h *AdminHandler) ListUsers(c *gin.Context) {
+	var users []models.User
+	if err := h.db.Preload("Role").Find(&users).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Ошибка загрузки пользователей"})
+		return
+	}
+	c.JSON(http.StatusOK, users)
+}
+
+func (h *AdminHandler) ListProjects(c *gin.Context) {
+	var projects []models.Project
+	h.db.Find(&projects)
+	c.JSON(http.StatusOK, projects)
 }

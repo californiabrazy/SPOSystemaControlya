@@ -24,14 +24,14 @@ func NewAuthHandler(db *gorm.DB) *AuthHandler {
 func (h *AuthHandler) Login(c *gin.Context) {
 	var input models.LoginInput
 	if err := c.ShouldBindJSON(&input); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Неверный формат данных"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Неверный формат данных или данные не введены"})
 		return
 	}
 
 	var user models.User
 	if err := h.db.Preload("Role").Where("email = ?", input.Email).First(&user).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "Неверный email или пароль"})
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "Неверный Email или пароль"})
 		} else {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Ошибка базы данных"})
 		}
@@ -39,7 +39,7 @@ func (h *AuthHandler) Login(c *gin.Context) {
 	}
 
 	if !utils.CheckPasswordHash(input.Password, user.Password) {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Неверный email или пароль"})
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Неверный Email или пароль"})
 		return
 	}
 
@@ -123,5 +123,13 @@ func (h *AuthHandler) Check(c *gin.Context) {
 		"message": "Токен действителен",
 		"id":      userID,
 		"role":    role,
+	})
+}
+
+func (h *AuthHandler) Logout(c *gin.Context) {
+	c.SetCookie("refresh_token", "", -1, "/", "", true, true)
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "Вы успешно вышли из аккаунта",
 	})
 }

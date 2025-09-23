@@ -1,57 +1,36 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect } from "react";
 import { Building2 } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { jwtDecode } from "jwt-decode"; 
+import LoginForm from "@/components/forms/LoginForm";
 
-interface LoginData {
-  email: string;
-  password: string;
-}
+type JwtPayload = {
+  role?: string;
+  exp?: number;
+  [key: string]: unknown; 
+};
 
 export default function LoginPage() {
   const router = useRouter();
-  const [form, setForm] = useState<LoginData>({ email: "", password: "" });
-  const [error, setError] = useState<string | null>(null);
-  const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
-  function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const { name, value } = e.target;
-    setForm((s) => ({ ...s, [name]: value }));
-    setError(null);
-  }
+  useEffect(() => {
+    const accessToken = localStorage.getItem("access_token");
+    if (!accessToken) return;
 
-  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault();
     try {
-      const response = await fetch(`${API_URL}/auth/login`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(form),
-      });
-
-      const data = await response.json();
-      if (!response.ok) {
-        throw new Error(data.error || "Ошибка входа");
+      const decoded = jwtDecode<JwtPayload>(accessToken); // указываем тип дженериком
+      if (decoded.role === "admin") {
+        router.push("/admin");
+      } else {
+        router.push("/");
       }
-
-      localStorage.setItem("access_token", data.access_token);
-      localStorage.setItem("user", JSON.stringify(data.user));
-
-      if (data.refresh_token) {
-        const expires = new Date();
-        expires.setDate(expires.getDate() + 7);
-        document.cookie = `refresh_token=${data.refresh_token}; path=/; expires=${expires.toUTCString()}; secure; samesite=strict`;
-      }
-
-      setForm({ email: "", password: "" });
-      router.push("/");
-    } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Произошла ошибка");
+    } catch (err) {
+      console.error("Ошибка декодирования токена:", err);
+      localStorage.removeItem("access_token");
     }
-  }
+  }, [router]);
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-[#F0F9FA] p-6">
@@ -59,45 +38,19 @@ export default function LoginPage() {
         <div className="w-14 h-14 bg-[#99CDD8] rounded-3xl flex items-center justify-center shadow-md">
           <Building2 className="w-8 h-8 text-[#657166]" />
         </div>
-        <div className="text-center mt-2">
+        <div className="text-center mt-1">
           <h1 className="text-2xl font-bold text-[#657166]">СистемаКонтроля</h1>
-          <p className="text-sm text-[#8A9D67]">Управление дефектами</p>
         </div>
       </div>
       <div className="w-full max-w-md rounded-xl bg-white p-8 shadow-md">
-        <h1 className="mb-2 text-3xl font-bold text-[#657166] text-center">Вход</h1>
+        <h1 className="mb-2 text-3xl font-bold text-[#657166] text-center">
+          Вход
+        </h1>
         <p className="text-center text-[#8A9D67] mb-6">
           Добро пожаловать в СистемаКонтроля!
         </p>
 
-        {error && <p className="text-red-500 text-center mb-4">{error}</p>}
-
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <input
-            name="email"
-            type="email"
-            value={form.email}
-            onChange={handleChange}
-            placeholder="Email"
-            className="w-full rounded-xl bg-[#F5F5F5] px-4 py-3 text-black placeholder-black outline-none focus:ring-2 focus:ring-[#99CDD8] border-none shadow-md"
-          />
-
-          <input
-            name="password"
-            type="password"
-            value={form.password}
-            onChange={handleChange}
-            placeholder="Пароль"
-            className="w-full rounded-xl bg-[#F5F5F5] px-4 py-3 text-black placeholder-black outline-none focus:ring-2 focus:ring-[#99CDD8] border-none shadow-md"
-          />
-
-          <button
-            type="submit"
-            className="w-full rounded-xl bg-[#99CDD8] px-4 py-3 text-white hover:bg-[#8BBCC6] transition-colors"
-          >
-            Войти
-          </button>
-        </form>
+        <LoginForm />
       </div>
     </div>
   );
