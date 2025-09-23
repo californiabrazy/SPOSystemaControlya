@@ -12,8 +12,9 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { jwtDecode } from "jwt-decode"; // исправлено
+import { jwtDecode } from "jwt-decode"; 
 import LogoutModal from "../forms/QuitModal";
+import { href } from "react-router-dom";
 
 interface SidebarProps {
   activeTab: string;
@@ -21,7 +22,7 @@ interface SidebarProps {
 
 interface JwtPayload {
   role?: string;
-  [key: string]: unknown; // вместо any
+  [key: string]: unknown; 
 }
 
 export default function Sidebar({ activeTab }: SidebarProps) {
@@ -79,11 +80,15 @@ export default function Sidebar({ activeTab }: SidebarProps) {
     }
   };
 
+  const handleCLick = () => {
+    router.push("/")
+  }
+
   return (
     <>
       <aside className="w-64 bg-white text-[#657166] p-6 shadow-md flex flex-col justify-between">
         <div>
-          <div className="text-2xl font-bold flex justify-center text-[#8A9D67] mb-8 border rounded border-3">
+          <div className="text-2xl font-bold flex justify-center text-[#8A9D67] mb-8 border rounded border-3 cursor-pointer" onClick={handleCLick}>
             СистемаКонтроля
           </div>
           <nav className="space-y-2">

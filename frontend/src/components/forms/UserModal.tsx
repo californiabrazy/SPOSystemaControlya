@@ -127,7 +127,7 @@ export default function UserModal({ isOpen, onClose, roles, onSubmit }: UserModa
         >
           <option value="">Выберите роль</option>
           {roles
-            .filter((role) => role.name.toLowerCase() !== "admin") 
+            .filter((role) => role.name.toLowerCase() !== "Админ") 
             .map((role) => (
               <option key={role.id} value={role.id}>
                 {role.name}

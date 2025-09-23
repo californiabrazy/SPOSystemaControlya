@@ -12,7 +12,7 @@ function getCookie(name: string): string | null {
   return null;
 }
 
-type User = { id: number; first_name: string; last_name: string; role: { id: number; name: string }; };
+type User = { id: number; first_name: string; last_name: string; role: { id: number; name: string } };
 type Role = { id: number; name: string };
 type ObjectItem = { id: number; name: string; description: string };
 
@@ -237,11 +237,20 @@ export default function AdminDashboard() {
   useEffect(() => {
     const initialize = async () => {
       setLoading(true);
-      const tokenOk = await checkToken();
-      if (tokenOk) {
-        await Promise.all([fetchRoles(), fetchUsers(), fetchObjects(), fetchManagers()]);
+      try {
+        const tokenOk = await checkToken();
+        if (tokenOk) {
+          await Promise.all([fetchRoles(), fetchUsers(), fetchObjects(), fetchManagers()]);
+        } else {
+          router.push("/login");
+        }
+      } catch (error) {
+        console.error("Ошибка инициализации:", error);
+        setError("Ошибка при загрузке данных");
+        router.push("/login");
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     };
     initialize();
   }, [checkToken, fetchRoles, fetchUsers, fetchObjects, fetchManagers]);
@@ -250,13 +259,13 @@ export default function AdminDashboard() {
   if (error) return <div className="min-h-screen flex items-center justify-center text-red-500">{error}</div>;
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#f0f9fa] p-8">
+    <div className="flex items-center justify-center bg-[#f0f9fa] p-8">
       <div className="flex gap-8 w-full max-w-5xl">
-        <div className="flex-1 bg-white p-6 rounded-lg shadow space-y-4">
+        <div className="flex-1 bg-white p-6 rounded shadow-md space-y-4">
           <h2 className="text-xl font-semibold text-black">Пользователи</h2>
           <ul className="list-disc list-inside text-[#657166]">
             {users
-              .filter((user) => user.role.name !== "Админ") // например, не показываем админов
+              .filter((user) => user.role.name !== "Админ")
               .map((user) => (
                 <li key={user.id}>
                   {user.first_name} {user.last_name}
@@ -271,7 +280,7 @@ export default function AdminDashboard() {
           </button>
         </div>
 
-        <div className="flex-1 bg-white p-6 rounded-lg shadow space-y-4">
+        <div className="flex-1 bg-white p-6 rounded shadow-md space-y-4">
           <h2 className="text-xl font-semibold text-black">Строительные объекты</h2>
           <ul className="list-disc list-inside text-[#657166]">
             {objects.map((obj) => (

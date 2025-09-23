@@ -16,7 +16,6 @@ interface ObjectModalProps {
 }
 
 export default function ObjectModal({ isOpen, onClose, managers, onSubmit }: ObjectModalProps) {
-  // Хуки должны вызываться ДО любых условных операторов
   const [name, setName] = useState("");
   const [managerId, setManagerId] = useState("");
   const [description, setDescription] = useState("");
@@ -58,7 +57,6 @@ export default function ObjectModal({ isOpen, onClose, managers, onSubmit }: Obj
             value={name}
             onChange={(e) => setName(e.target.value)}
             className="w-full rounded-xl bg-[#F0F0F0] px-4 py-3 text-black placeholder-black outline-none focus:ring-2 focus:ring-[#99CDD8] border-none shadow-md"
-            placeholder="Введите название"
           />
         </div>
         <div>
@@ -68,7 +66,6 @@ export default function ObjectModal({ isOpen, onClose, managers, onSubmit }: Obj
             onChange={(e) => setManagerId(e.target.value)}
             className="w-full rounded-xl bg-[#F0F0F0] px-4 py-3 text-black outline-none focus:ring-2 focus:ring-[#99CDD8] border-none shadow-md"
           >
-            <option value="">Выберите менеджера</option>
             {managers.map((manager) => (
               <option key={manager.id} value={manager.id}>
                 {manager.first_name} {manager.last_name}
@@ -83,7 +80,6 @@ export default function ObjectModal({ isOpen, onClose, managers, onSubmit }: Obj
             onChange={handleDescriptionChange}
             className="w-full h-50 rounded-xl bg-[#F0F0F0] px-4 py-3 text-black placeholder-black outline-none focus:ring-2 focus:ring-[#99CDD8] border-none shadow-md resize-none"
             rows={5}
-            placeholder="Введите описание"
           />
           <div className="absolute bottom-2 right-3 text-sm text-gray-500 select-none">
             {description.length} / {MAX_CHARS} символов

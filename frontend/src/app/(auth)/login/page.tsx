@@ -20,7 +20,7 @@ export default function LoginPage() {
     if (!accessToken) return;
 
     try {
-      const decoded = jwtDecode<JwtPayload>(accessToken); // указываем тип дженериком
+      const decoded = jwtDecode<JwtPayload>(accessToken);
       if (decoded.role === "admin") {
         router.push("/admin");
       } else {

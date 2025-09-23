@@ -2,7 +2,8 @@
 
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
-import { jwtDecode } from "jwt-decode"; // исправлено
+import { jwtDecode } from "jwt-decode";
+import { Eye, EyeOff } from "lucide-react";
 
 interface LoginData {
   email: string;
@@ -12,13 +13,14 @@ interface LoginData {
 type JwtPayload = {
   role?: string;
   exp?: number;
-  [key: string]: unknown; // вместо any
+  [key: string]: unknown;
 };
 
 export default function LoginForm() {
   const router = useRouter();
   const [form, setForm] = useState<LoginData>({ email: "", password: "" });
   const [error, setError] = useState<string | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
   const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
@@ -50,8 +52,8 @@ export default function LoginForm() {
 
       setForm({ email: "", password: "" });
 
-      const decoded = jwtDecode<JwtPayload>(data.access_token); // указываем тип дженериком
-      if (decoded.role === "admin") {
+      const decoded = jwtDecode<JwtPayload>(data.access_token); 
+      if (decoded.role === "Админ") {
         router.push("/admin");
       } else {
         router.push("/");
@@ -78,14 +80,26 @@ export default function LoginForm() {
 
       <div>
         <p className="ml-3">Пароль</p>
-        <input
-          name="password"
-          type="password"
-          value={form.password}
-          onChange={handleChange}
-          className="w-full rounded bg-[#F0F0F0] px-4 py-3 text-black placeholder-black outline-none focus:ring-2 focus:ring-[#99CDD8] border-none shadow-md"
-        />
+        <div className="relative">
+          <input
+            name="password"
+            type={showPassword ? "text" : "password"}
+            value={form.password}
+            onChange={handleChange}
+            className="w-full rounded bg-[#F0F0F0] px-4 py-3 text-black placeholder-black outline-none focus:ring-2 focus:ring-[#99CDD8] border-none shadow-md pr-10"
+          />
+          <button
+            type="button"
+            onMouseDown={() => setShowPassword(true)}  
+            onMouseUp={() => setShowPassword(false)}     
+            onMouseLeave={() => setShowPassword(false)}  
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-600 hover:text-black"
+          >
+            {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+          </button>
+        </div>
       </div>
+
 
       <button
         type="submit"
