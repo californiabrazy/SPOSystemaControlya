@@ -17,12 +17,13 @@ export default function LoginPage() {
 
   useEffect(() => {
     const accessToken = localStorage.getItem("access_token");
+
     if (!accessToken) return;
 
     try {
       const decoded = jwtDecode<JwtPayload>(accessToken);
-      if (decoded.role === "admin") {
-        router.push("/admin");
+      if (decoded.role === "Админ") {
+        router.push("/admin/users");
       } else {
         router.push("/");
       }
@@ -35,11 +36,8 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-[#F0F9FA] p-6">
       <div className="flex items-center mb-3 gap-2">
-        <div className="w-14 h-14 bg-[#99CDD8] rounded-3xl flex items-center justify-center shadow-md">
-          <Building2 className="w-8 h-8 text-[#657166]" />
-        </div>
-        <div className="text-center mt-1">
-          <h1 className="text-2xl font-bold text-[#657166]">СистемаКонтроля</h1>
+        <div className="text-center flex justify-center p-1 font-bold mt-1 text-2xl font-bold text-[#8A9D67] border rounded border-3 cursor-pointer">
+          СистемаКонтроля
         </div>
       </div>
       <div className="w-full max-w-md rounded-xl bg-white p-8 shadow-md">

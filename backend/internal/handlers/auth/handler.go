@@ -1,6 +1,7 @@
 package auth
 
 import (
+	"fmt"
 	"net/http"
 	"os"
 	"time"
@@ -58,9 +59,18 @@ func (h *AuthHandler) Login(c *gin.Context) {
 	accessString, _ := accessToken.SignedString([]byte(os.Getenv("JWT_SECRET")))
 	refreshString, _ := refreshToken.SignedString([]byte(os.Getenv("JWT_REFRESH_SECRET")))
 
+	c.SetCookie(
+		"refresh_token",
+		refreshString,
+		60*60*24*7,
+		"/",
+		"",
+		false, // secure (HTTPS)
+		true,  // HttpOnly
+	)
+
 	c.JSON(http.StatusOK, gin.H{
-		"access_token":  accessString,
-		"refresh_token": refreshString,
+		"access_token": accessString,
 		"user": gin.H{
 			"first_name": user.FirstName,
 		},
@@ -68,45 +78,42 @@ func (h *AuthHandler) Login(c *gin.Context) {
 }
 
 func (h *AuthHandler) Refresh(c *gin.Context) {
-	var input struct {
-		RefreshToken string `json:"refresh_token"`
-	}
-
-	if err := c.ShouldBindJSON(&input); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Неверный формат"})
+	refreshString, err := c.Cookie("refresh_token")
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Нет refresh токена"})
 		return
 	}
 
-	token, err := jwt.Parse(input.RefreshToken, func(token *jwt.Token) (interface{}, error) {
+	token, err := jwt.Parse(refreshString, func(token *jwt.Token) (interface{}, error) {
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, fmt.Errorf("неожиданный метод подписи: %v", token.Header["alg"])
+		}
 		return []byte(os.Getenv("JWT_REFRESH_SECRET")), nil
 	})
 
 	if err != nil || !token.Valid {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Недействительный refresh token"})
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Недействительный refresh токен"})
 		return
 	}
 
-	claims := token.Claims.(jwt.MapClaims)
-	userID, ok := claims["id"].(float64)
+	claims, ok := token.Claims.(jwt.MapClaims)
 	if !ok {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Недействительный refresh token"})
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Недействительный refresh токен"})
 		return
 	}
-	role, ok := claims["role"].(string)
-	if !ok {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Недействительный refresh token"})
-		return
-	}
+
+	userID := uint(claims["id"].(float64))
+	role := claims["role"].(string)
 
 	newAccess := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"id":   userID,
 		"role": role,
-		"exp":  time.Now().Add(time.Minute * 3).Unix(),
+		"exp":  time.Now().Add(time.Minute * 15).Unix(),
 	})
 
 	newAccessString, err := newAccess.SignedString([]byte(os.Getenv("JWT_SECRET")))
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Ошибка генерации токена"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Ошибка генерации access токена"})
 		return
 	}
 

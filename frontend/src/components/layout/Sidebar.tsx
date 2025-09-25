@@ -7,26 +7,30 @@ import {
   AlertTriangle,
   BarChart,
   Settings,
-  BrickWallShield,
+  Users,
   LogOut,
+  FolderKanban,
 } from "lucide-react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { jwtDecode } from "jwt-decode"; 
+import { useRouter, usePathname } from "next/navigation";
+import { jwtDecode } from "jwt-decode";
 import LogoutModal from "../forms/QuitModal";
-import { href } from "react-router-dom";
-
-interface SidebarProps {
-  activeTab: string;
-}
 
 interface JwtPayload {
   role?: string;
-  [key: string]: unknown; 
+  [key: string]: unknown;
 }
 
+interface SidebarProps {
+  activeTab?: string;
+}
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL!; 
+
 export default function Sidebar({ activeTab }: SidebarProps) {
+  const isActive = (tabId: string) => tabId === activeTab;
   const router = useRouter();
+  const pathname = usePathname();
   const [isLogoutOpen, setIsLogoutOpen] = useState(false);
   const [role, setRole] = useState<string | null>(null);
 
@@ -34,7 +38,7 @@ export default function Sidebar({ activeTab }: SidebarProps) {
     const token = localStorage.getItem("access_token");
     if (token) {
       try {
-        const decoded = jwtDecode<JwtPayload>(token); 
+        const decoded = jwtDecode<JwtPayload>(token);
         if (decoded.role && typeof decoded.role === "string") {
           setRole(decoded.role);
         }
@@ -49,7 +53,8 @@ export default function Sidebar({ activeTab }: SidebarProps) {
     { id: "projects", label: "Проекты", icon: <Folder size={20} />, href: "/projects" },
     { id: "defects", label: "Дефекты", icon: <AlertTriangle size={20} />, href: "/defects" },
     { id: "reports", label: "Отчеты", icon: <BarChart size={20} />, href: "/reports" },
-    { id: "admin", label: "Управление", icon: <BrickWallShield size={20} />, href: "/admin" },
+    { id: "admin_users", label: "Пользователи", icon: <Users size={20} />, href: "/admin/users" },
+    { id: "admin_projects", label: "Проекты", icon: <FolderKanban size={20} />, href: "/admin/projects" },
     { id: "settings", label: "Настройки", icon: <Settings size={20} />, href: "/settings" },
   ];
 
@@ -66,46 +71,53 @@ export default function Sidebar({ activeTab }: SidebarProps) {
 
   const handleConfirmLogout = async () => {
     try {
-      await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/logout`, {
+      await fetch(`${API_URL}/api/auth/logout`, {
         method: "POST",
-        credentials: "include",
+        credentials: "include", // отправка HttpOnly cookie
       });
     } catch (_err: unknown) {
       console.error("Ошибка при выходе:", _err);
     } finally {
       localStorage.removeItem("access_token");
       localStorage.removeItem("user");
+      // document.cookie = `refresh_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; secure; samesite=strict`;
       setIsLogoutOpen(false);
       router.push("/login");
     }
   };
 
-  const handleCLick = () => {
-    router.push("/")
-  }
+  const handleClickLogo = () => {
+    router.push("/");
+  };
 
   return (
     <>
       <aside className="w-64 bg-white text-[#657166] p-6 shadow-md flex flex-col justify-between">
         <div>
-          <div className="text-2xl font-bold flex justify-center text-[#8A9D67] mb-8 border rounded border-3 cursor-pointer" onClick={handleCLick}>
+          <div
+            className="text-2xl font-bold flex justify-center text-[#8A9D67] mb-8 border rounded border-3 cursor-pointer"
+            onClick={handleClickLogo}
+          >
             СистемаКонтроля
           </div>
           <nav className="space-y-2">
-            {visibleTabs.map((tab) => (
-              <Link
-                key={tab.id}
-                href={tab.href}
-                className={`flex items-center space-x-2 p-2 w-full text-left rounded transition-colors ${
-                  activeTab === tab.id
-                    ? "bg-[#8BBCC6] text-white"
-                    : "hover:bg-[#8BBCC6] hover:text-white"
-                }`}
-              >
-                {tab.icon}
-                <span>{tab.label}</span>
-              </Link>
-            ))}
+            {visibleTabs.map((tab) => {
+              const isActive = pathname === tab.href || pathname.startsWith(tab.href + "/");
+              return (
+                <Link
+                  key={tab.id}
+                  href={tab.href}
+                  className={`flex items-center space-x-2 p-2 w-full text-left rounded transition-colors ${
+                    isActive
+                      ? "bg-[#8BBCC6] text-white"
+                      : "hover:bg-[#8BBCC6] hover:text-white"
+                  }`}
+                >
+                  {tab.icon}
+                  <span>{tab.label}</span>
+                </Link>
+              );
+            })}
           </nav>
         </div>
 

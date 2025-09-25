@@ -6,6 +6,7 @@ interface Manager {
   id: number;
   first_name: string;
   last_name: string;
+  middle_name: string;
 }
 
 interface ObjectModalProps {
@@ -43,7 +44,6 @@ export default function ObjectModal({ isOpen, onClose, managers, onSubmit }: Obj
     setDescription("");
   };
 
-  // Условный рендеринг после всех хуков
   if (!isOpen) return null;
 
   return (
@@ -66,9 +66,12 @@ export default function ObjectModal({ isOpen, onClose, managers, onSubmit }: Obj
             onChange={(e) => setManagerId(e.target.value)}
             className="w-full rounded-xl bg-[#F0F0F0] px-4 py-3 text-black outline-none focus:ring-2 focus:ring-[#99CDD8] border-none shadow-md"
           >
+            <option value="" disabled>
+              Выберите менеджера
+            </option>
             {managers.map((manager) => (
               <option key={manager.id} value={manager.id}>
-                {manager.first_name} {manager.last_name}
+                {manager.first_name} {manager.last_name} {manager.middle_name}
               </option>
             ))}
           </select>

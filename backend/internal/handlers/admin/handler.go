@@ -98,6 +98,71 @@ func (h *AdminHandler) AvaliableManagers(c *gin.Context) {
 	c.JSON(http.StatusOK, availableManagers)
 }
 
+func (h *AdminHandler) DeleteUser(c *gin.Context) {
+	role, exists := c.Get("role")
+	if !exists || role != "Админ" {
+		c.JSON(http.StatusForbidden, gin.H{"error": "Недостаточно прав"})
+		return
+	}
+
+	var input struct {
+		ID uint `json:"id" binding:"required"`
+	}
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Неверный формат данных"})
+		return
+	}
+
+	var user models.User
+	if err := h.db.First(&user, input.ID).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Такого пользователя не существует"})
+		return
+	}
+
+	var count int64
+	if err := h.db.Model(&models.Project{}).
+		Where("manager_id = ?", user.ID).
+		Count(&count).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Ошибка проверки связей"})
+		return
+	}
+
+	if count > 0 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Нельзя удалить менеджера, он закреплен за проектом"})
+		return
+	}
+
+	if err := h.db.Delete(&models.User{}, user.ID).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Ошибка при удалении"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Пользователь удалён"})
+}
+
+func (h *AdminHandler) DeleteProject(c *gin.Context) {
+	role, exists := c.Get("role")
+	if !exists || role != "Админ" {
+		c.JSON(http.StatusForbidden, gin.H{"error": "Недостаточно прав"})
+		return
+	}
+
+	var input struct {
+		ID uint `json:"id" binding:"required"`
+	}
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Неверный формат данных"})
+		return
+	}
+
+	if err := h.db.Delete(&models.Project{}, input.ID).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Ошибка при удалении"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Проект удалён"})
+}
+
 func (h *AdminHandler) ListRoles(c *gin.Context) {
 	var roles []models.Role
 	h.db.Find(&roles)
@@ -115,6 +180,9 @@ func (h *AdminHandler) ListUsers(c *gin.Context) {
 
 func (h *AdminHandler) ListProjects(c *gin.Context) {
 	var projects []models.Project
-	h.db.Find(&projects)
+	if err := h.db.Preload("Manager").Find(&projects).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Ошибка загрузки проектов"})
+		return
+	}
 	c.JSON(http.StatusOK, projects)
 }

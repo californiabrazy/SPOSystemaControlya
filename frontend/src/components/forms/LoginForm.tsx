@@ -16,12 +16,13 @@ type JwtPayload = {
   [key: string]: unknown;
 };
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL!; 
+
 export default function LoginForm() {
   const router = useRouter();
   const [form, setForm] = useState<LoginData>({ email: "", password: "" });
   const [error, setError] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
-  const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
     const { name, value } = e.target;
@@ -32,9 +33,10 @@ export default function LoginForm() {
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     try {
-      const response = await fetch(`${API_URL}/auth/login`, {
+      const response = await fetch(`${API_URL}/api/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "include", 
         body: JSON.stringify(form),
       });
 
@@ -44,17 +46,11 @@ export default function LoginForm() {
       localStorage.setItem("access_token", data.access_token);
       localStorage.setItem("user", JSON.stringify(data.user));
 
-      if (data.refresh_token) {
-        const expires = new Date();
-        expires.setDate(expires.getDate() + 7);
-        document.cookie = `refresh_token=${data.refresh_token}; path=/; expires=${expires.toUTCString()}; secure; samesite=strict`;
-      }
-
       setForm({ email: "", password: "" });
 
-      const decoded = jwtDecode<JwtPayload>(data.access_token); 
+      const decoded = jwtDecode<JwtPayload>(data.access_token);
       if (decoded.role === "Админ") {
-        router.push("/admin");
+        router.push("/admin/users");
       } else {
         router.push("/");
       }
@@ -90,16 +86,15 @@ export default function LoginForm() {
           />
           <button
             type="button"
-            onMouseDown={() => setShowPassword(true)}  
-            onMouseUp={() => setShowPassword(false)}     
-            onMouseLeave={() => setShowPassword(false)}  
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-600 hover:text-black"
+            onMouseDown={() => setShowPassword(true)}
+            onMouseUp={() => setShowPassword(false)}
+            onMouseLeave={() => setShowPassword(false)}
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-black hover:text-black"
           >
             {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
           </button>
         </div>
       </div>
-
 
       <button
         type="submit"

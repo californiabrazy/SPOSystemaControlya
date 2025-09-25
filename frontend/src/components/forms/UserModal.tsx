@@ -125,7 +125,7 @@ export default function UserModal({ isOpen, onClose, roles, onSubmit }: UserModa
           onChange={(e) => setRoleId(e.target.value ? Number(e.target.value) : "")}
           className="w-full rounded bg-[#F0F0F0] px-4 py-3 text-black outline-none focus:ring-2 focus:ring-[#99CDD8] border-none shadow-md"
         >
-          <option value="">Выберите роль</option>
+          <option value="" disabled>Выберите роль</option>
           {roles
             .filter((role) => role.name.toLowerCase() !== "Админ") 
             .map((role) => (

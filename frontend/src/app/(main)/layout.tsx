@@ -5,6 +5,10 @@ import Sidebar from "../../components/layout/Sidebar";
 import Header from "../../components/layout/Header";
 import { usePathname } from "next/navigation";
 
+interface SidebarProps {
+  activeTab?: string; // или без ? если обязательно
+}
+
 export default function MainLayout({
   children,
 }: Readonly<{
