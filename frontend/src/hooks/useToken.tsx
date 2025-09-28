@@ -1,7 +1,7 @@
 import { useCallback } from "react";
 import { useRouter } from "next/navigation";
 
-export function useAdmin() {
+export function useToken() {
   const router = useRouter();
   const API_URL = process.env.NEXT_PUBLIC_API_URL!;
 
@@ -46,11 +46,6 @@ export function useAdmin() {
       });
 
       if (res.ok) {
-        const data: { role: string } = await res.json();
-        if (data.role !== "Админ") {
-          router.push("/");
-          return false;
-        }
         return true;
       }
 

@@ -5,7 +5,8 @@ import { useRouter } from "next/navigation";
 import ObjectModal from "@/components/forms/ObjectModal";
 import DeleteObjectModal from "@/components/forms/DeleteObjectModal";
 import ConfirmDeleteModal from "@/components/forms/ConfirmDeleteObjectModal";
-import { useAdmin } from "@/hooks/useAdmin";
+import { useToken } from "@/hooks/useToken";
+import { useRoleGuard } from "@/hooks/useRoleGuard";
 
 type ObjectItem = {
   id: number;
@@ -23,12 +24,14 @@ export default function ProjectsPage() {
   const [showDeleteObjectModal, setShowDeleteObjectModal] = useState(false);
   const [showConfirmDeleteObjectModal, setShowConfirmDeleteObjectModal] = useState(false);
   const [selectedObject, setSelectedObject] = useState<ObjectItem | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [dataLoading, setDataLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [objects, setObjects] = useState<ObjectItem[]>([]);
   const [managers, setManagers] = useState<User[]>([]);
   const router = useRouter();
-  const { checkToken } = useAdmin();
+
+  const { checkToken } = useToken();
+  const { loading: roleLoading } = useRoleGuard(["Админ"]);
 
   const fetchObjects = useCallback(async () => {
     const accessToken = localStorage.getItem("access_token");
@@ -101,20 +104,17 @@ export default function ProjectsPage() {
     [fetchObjects]
   );
 
-  const DeleteObject = useCallback(
+  const deleteObject = useCallback(
     async (deleteData: { id: number }) => {
-      const access_token = localStorage.getItem("access_token");
-      if (!access_token) {
-        alert("Токен авторизации отсутствует");
-        return;
-      }
+      const accessToken = localStorage.getItem("access_token");
+      if (!accessToken) return;
 
       try {
         const res = await fetch(`${API_URL}/api/admin/delete_project`, {
           method: "DELETE",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${access_token}`,
+            Authorization: `Bearer ${accessToken}`,
           },
           credentials: "include",
           body: JSON.stringify(deleteData),
@@ -129,8 +129,8 @@ export default function ProjectsPage() {
         setShowConfirmDeleteObjectModal(false);
         setShowDeleteObjectModal(false);
         setSelectedObject(null);
-      } catch (error) {
-        alert(error instanceof Error ? error.message : "Ошибка удаления");
+      } catch (err) {
+        alert(err instanceof Error ? err.message : "Ошибка удаления");
       }
     },
     [fetchObjects]
@@ -138,24 +138,21 @@ export default function ProjectsPage() {
 
   useEffect(() => {
     const initialize = async () => {
-      setLoading(true);
+      setDataLoading(true);
       try {
         const tokenOk = await checkToken();
-        if (tokenOk) {
-          await Promise.all([fetchObjects(), fetchManagers()]);
-        } else {
-          router.push("/login");
-        }
+        if (!tokenOk) return; 
+
+        await Promise.all([fetchObjects(), fetchManagers()]);
       } catch (err) {
         console.error(err);
         setError("Ошибка при загрузке данных");
-        router.push("/login");
       } finally {
-        setLoading(false);
+        setDataLoading(false);
       }
     };
     initialize();
-  }, [checkToken, fetchObjects, fetchManagers, router]);
+  }, [checkToken, fetchObjects, fetchManagers]);
 
   const handleSelectObject = (object: ObjectItem) => {
     setSelectedObject(object);
@@ -163,8 +160,13 @@ export default function ProjectsPage() {
     setShowConfirmDeleteObjectModal(true);
   };
 
-  if (loading) return <div className="min-h-screen flex items-center justify-center">Загрузка...</div>;
-  if (error) return <div className="min-h-screen flex items-center justify-center text-red-500">{error}</div>;
+  if (dataLoading || roleLoading) {
+    return <div className="min-h-screen flex items-center justify-center">Загрузка...</div>;
+  }
+
+  if (error) {
+    return <div className="min-h-screen flex items-center justify-center text-red-500">{error}</div>;
+  }
 
   return (
     <div className="bg-[#f0f9fa]">
@@ -208,7 +210,9 @@ export default function ProjectsPage() {
                     <td className="py-3 px-4 text-black">{obj.name}</td>
                     <td className="py-3 px-4 text-black">{obj.description}</td>
                     <td className="py-3 px-4 text-black">
-                      {obj.manager ? `${obj.manager.first_name} ${obj.manager.last_name} ${obj.manager.middle_name}` : "Не назначен"}
+                      {obj.manager
+                        ? `${obj.manager.first_name} ${obj.manager.last_name} ${obj.manager.middle_name}`
+                        : "Не назначен"}
                     </td>
                   </tr>
                 ))
@@ -235,7 +239,7 @@ export default function ProjectsPage() {
             setSelectedObject(null);
           }}
           object={selectedObject}
-          onConfirm={() => selectedObject && DeleteObject({ id: selectedObject.id })}
+          onConfirm={() => selectedObject && deleteObject({ id: selectedObject.id })}
         />
       </div>
     </div>

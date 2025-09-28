@@ -108,7 +108,7 @@ func (h *AuthHandler) Refresh(c *gin.Context) {
 	newAccess := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"id":   userID,
 		"role": role,
-		"exp":  time.Now().Add(time.Minute * 15).Unix(),
+		"exp":  time.Now().Add(time.Minute * 1).Unix(),
 	})
 
 	newAccessString, err := newAccess.SignedString([]byte(os.Getenv("JWT_SECRET")))

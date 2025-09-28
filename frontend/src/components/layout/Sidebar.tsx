@@ -58,16 +58,29 @@ export default function Sidebar({ activeTab }: SidebarProps) {
     { id: "settings", label: "Настройки", icon: <Settings size={20} />, href: "/settings" },
   ];
 
-  const visibleTabs =
-    role === "Админ"
-      ? tabs.filter(
-          (tab) =>
-            tab.id !== "projects" &&
-            tab.id !== "defects" &&
-            tab.id !== "reports" &&
-            tab.id !== "dashboard"
-        )
-      : tabs;
+  const visibleTabs = (() => {
+  if (role === "Админ") {
+    return tabs.filter(
+      (tab) =>
+        tab.id !== "projects" &&
+        tab.id !== "defects" &&
+        tab.id !== "reports" &&
+        tab.id !== "dashboard"
+    );
+  }
+
+  if (role === "Инженер") {
+    return tabs.filter(
+      (tab) =>
+        tab.id !== "admin_users" && 
+        tab.id !== "admin_projects" &&
+        tab.id !== "reports"
+    );
+  }
+
+  return tabs; 
+})();
+
 
   const handleConfirmLogout = async () => {
     try {

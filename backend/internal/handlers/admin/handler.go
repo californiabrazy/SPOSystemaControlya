@@ -19,7 +19,7 @@ func NewAdminHandler(db *gorm.DB) *AdminHandler {
 }
 
 func (h *AdminHandler) AddUser(c *gin.Context) {
-	var input models.User
+	var input models.CreateUserInput
 	if err := c.ShouldBindJSON(&input); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Неверный формат данных"})
 		return

@@ -5,9 +5,17 @@ import { useRouter } from "next/navigation";
 import UserModal from "@/components/forms/UserModal";
 import DeleteUserModal from "@/components/forms/DeleteUserModal";
 import ConfirmDeleteModal from "@/components/forms/ConfirmDeleteUserModal";
-import { useAdmin } from "@/hooks/useAdmin";
+import { useToken } from "@/hooks/useToken";
+import { useRoleGuard } from "@/hooks/useRoleGuard";
 
-type User = { id: number; first_name: string; last_name: string; middle_name: string; email: string; role: { id: number; name: string } };
+type User = {
+  id: number;
+  first_name: string;
+  last_name: string;
+  middle_name: string;
+  email: string;
+  role: { id: number; name: string };
+};
 type Role = { id: number; name: string };
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL!;
@@ -17,65 +25,72 @@ export default function UsersPage() {
   const [showDeleteUserModal, setShowDeleteUserModal] = useState(false);
   const [showConfirmDeleteModal, setShowConfirmDeleteModal] = useState(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [users, setUsers] = useState<User[]>([]);
   const [roles, setRoles] = useState<Role[]>([]);
   const [managers, setManagers] = useState<User[]>([]);
+  const [error, setError] = useState<string | null>(null);
   const router = useRouter();
-  const { checkToken } = useAdmin();
+
+  const { checkToken } = useToken();
+  const { loading: roleLoading, role } = useRoleGuard(["Админ"]);
 
   const fetchRoles = useCallback(async () => {
-    const accessToken = localStorage.getItem("access_token");
-    if (!accessToken) return;
-
     try {
+      const accessToken = localStorage.getItem("access_token");
+      if (!accessToken) return;
+
       const res = await fetch(`${API_URL}/api/admin/roles`, {
         headers: { Authorization: `Bearer ${accessToken}` },
         credentials: "include",
       });
-      if (res.ok) {
-        const data: Role[] = await res.json();
-        setRoles(data);
-      }
+
+      if (!res.ok) throw new Error("Ошибка загрузки ролей");
+
+      const data: Role[] = await res.json();
+      setRoles(data);
     } catch (err) {
-      console.error("Ошибка загрузки ролей", err);
+      console.error(err);
+      setError("Ошибка загрузки ролей");
     }
   }, []);
 
   const fetchUsers = useCallback(async () => {
-    const accessToken = localStorage.getItem("access_token");
-    if (!accessToken) return;
-
     try {
+      const accessToken = localStorage.getItem("access_token");
+      if (!accessToken) return;
+
       const res = await fetch(`${API_URL}/api/admin/users`, {
         headers: { Authorization: `Bearer ${accessToken}` },
         credentials: "include",
       });
-      if (res.ok) {
-        const data: User[] = await res.json();
-        setUsers(data);
-      }
+
+      if (!res.ok) throw new Error("Ошибка загрузки пользователей");
+
+      const data: User[] = await res.json();
+      setUsers(data);
     } catch (err) {
-      console.error("Ошибка загрузки пользователей", err);
+      console.error(err);
+      setError("Ошибка загрузки пользователей");
     }
   }, []);
 
   const fetchManagers = useCallback(async () => {
-    const accessToken = localStorage.getItem("access_token");
-    if (!accessToken) return;
-
     try {
+      const accessToken = localStorage.getItem("access_token");
+      if (!accessToken) return;
+
       const res = await fetch(`${API_URL}/api/admin/available_managers`, {
         headers: { Authorization: `Bearer ${accessToken}` },
         credentials: "include",
       });
-      if (res.ok) {
-        const data: User[] = await res.json();
-        setManagers(data);
-      }
+
+      if (!res.ok) throw new Error("Ошибка загрузки менеджеров");
+
+      const data: User[] = await res.json();
+      setManagers(data);
     } catch (err) {
-      console.error("Ошибка загрузки менеджеров", err);
+      console.error(err);
+      setError("Ошибка загрузки менеджеров");
     }
   }, []);
 
@@ -88,10 +103,10 @@ export default function UsersPage() {
       password: string;
       role_id: number;
     }) => {
-      const accessToken = localStorage.getItem("access_token");
-      if (!accessToken) return;
-
       try {
+        const accessToken = localStorage.getItem("access_token");
+        if (!accessToken) return;
+
         const res = await fetch(`${API_URL}/api/admin/users`, {
           method: "POST",
           headers: {
@@ -102,13 +117,14 @@ export default function UsersPage() {
           body: JSON.stringify(userData),
         });
 
-        if (res.ok) {
-          await fetchUsers();
-          setShowUserModal(false);
-        } else {
+        if (!res.ok) {
           const errData = await res.json();
           setError(errData.error || "Ошибка создания пользователя");
+          return;
         }
+
+        await fetchUsers();
+        setShowUserModal(false);
       } catch {
         setError("Ошибка запроса к серверу");
       }
@@ -116,25 +132,21 @@ export default function UsersPage() {
     [fetchUsers]
   );
 
-  const DeleteUser = useCallback(
-    async (deleteData: {
-      id: number,
-    }) => {
-      const access_token = localStorage.getItem("access_token");
-      if (!access_token) {
-        return
-      }
-
+  const deleteUser = useCallback(
+    async (deleteData: { id: number }) => {
       try {
+        const accessToken = localStorage.getItem("access_token");
+        if (!accessToken) return;
+
         const res = await fetch(`${API_URL}/api/admin/delete_user`, {
           method: "DELETE",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${access_token}`,
+            Authorization: `Bearer ${accessToken}`,
           },
           credentials: "include",
           body: JSON.stringify(deleteData),
-        })
+        });
 
         if (!res.ok) {
           const err = await res.json();
@@ -145,8 +157,8 @@ export default function UsersPage() {
         setShowConfirmDeleteModal(false);
         setShowDeleteUserModal(false);
         setSelectedUser(null);
-      } catch (error) {
-        alert(error instanceof Error ? error.message : "Ошибка удаления");  
+      } catch (err) {
+        alert(err instanceof Error ? err.message : "Ошибка удаления");
       }
     },
     [fetchUsers]
@@ -154,24 +166,22 @@ export default function UsersPage() {
 
   useEffect(() => {
     const initialize = async () => {
-      setLoading(true);
       try {
         const tokenOk = await checkToken();
-        if (tokenOk) {
-          await Promise.all([fetchRoles(), fetchUsers(), fetchManagers()]);
-        } else {
+        if (!tokenOk) {
           router.push("/login");
+          return;
         }
+
+        await Promise.all([fetchRoles(), fetchUsers(), fetchManagers()]);
       } catch (err) {
-        console.error("Ошибка инициализации:", err);
+        console.error(err);
         setError("Ошибка при загрузке данных");
         router.push("/login");
-      } finally {
-        setLoading(false);
       }
     };
     initialize();
-  }, [checkToken, fetchRoles, fetchUsers, fetchManagers]);
+  }, [checkToken, fetchRoles, fetchUsers, fetchManagers, router]);
 
   const handleSelectUser = (user: User) => {
     setSelectedUser(user);
@@ -179,8 +189,10 @@ export default function UsersPage() {
     setShowConfirmDeleteModal(true);
   };
 
-  if (loading) return <div className="min-h-screen flex items-center justify-center">Загрузка...</div>;
+  // --- Рендер страницы ---
+  if (roleLoading) return <div className="min-h-screen flex items-center justify-center">Загрузка...</div>;
   if (error) return <div className="min-h-screen flex items-center justify-center text-red-500">{error}</div>;
+  if (role !== "Админ") return null; // скрываем страницу, если не Админ
 
   return (
     <div className="bg-[#f0f9fa]">
@@ -214,15 +226,25 @@ export default function UsersPage() {
               </tr>
             </thead>
             <tbody>
-              {users.filter((user) => user.role.name !== "Админ").map((user) => (
-                <tr key={user.id} className="hover:bg-gray-100">
-                  <td className="py-3 px-4 text-black">{user.first_name}</td>
-                  <td className="py-3 px-4 text-black">{user.last_name}</td>
-                  <td className="py-3 px-4 text-black">{user.middle_name}</td>
-                  <td className="py-3 px-4 text-black">{user.email}</td>
-                  <td className="py-3 px-4 text-black">{user.role.name}</td>
+              {users.length === 0 ? (
+                <tr>
+                  <td colSpan={5} className="py-3 px-4 text-center text-[#657166]">
+                    Нет пользователей
+                  </td>
                 </tr>
-              ))}
+              ) : (
+                users
+                  .filter((user) => user.role.name !== "Админ")
+                  .map((user) => (
+                    <tr key={user.id} className="hover:bg-gray-100">
+                      <td className="py-3 px-4 text-black">{user.first_name}</td>
+                      <td className="py-3 px-4 text-black">{user.last_name}</td>
+                      <td className="py-3 px-4 text-black">{user.middle_name}</td>
+                      <td className="py-3 px-4 text-black">{user.email}</td>
+                      <td className="py-3 px-4 text-black">{user.role.name}</td>
+                    </tr>
+                  ))
+              )}
             </tbody>
           </table>
         </div>
@@ -245,7 +267,7 @@ export default function UsersPage() {
             setSelectedUser(null);
           }}
           user={selectedUser}
-          onConfirm={() => selectedUser && DeleteUser({ id: selectedUser.id })}
+          onConfirm={() => selectedUser && deleteUser({ id: selectedUser.id })}
         />
       </div>
     </div>
