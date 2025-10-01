@@ -7,9 +7,12 @@ import (
 )
 
 func (h *DefectHandler) RegisterRoutes(router *gin.Engine) {
-	auth := router.Group("api/defects")
+	defect := router.Group("api/defects")
 	{
-		auth.POST("/add", utils.AuthMiddleware(), h.AddDefect)
-		auth.GET("/all", utils.AuthMiddleware(), h.ListDefects)
+		defect.GET("/yours", utils.AuthMiddleware(), h.UserListDefects)
+
+		defect.POST("/add", utils.AuthMiddleware(), h.AddDefect)
+
+		defect.PUT("/edit/:id", utils.AuthMiddleware(), h.EditDefect)
 	}
 }

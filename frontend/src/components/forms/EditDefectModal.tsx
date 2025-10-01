@@ -1,55 +1,85 @@
 "use client";
 
-import { useState, ChangeEvent } from "react";
+import { useState, useEffect } from "react";
 
-interface AddDefectModalProps {
+type Defect = {
+  id: number;
+  title: string;
+  description: string;
+  priority: string;
+  status: string;
+  projectId: number;
+  authorId: number;
+  createdAt: string;
+  updatedAt: string;
+  author?: { id: number; first_name: string; last_name: string; middle_name: string };
+  project?: { id: number; name: string };
+};
+
+type Project = {
+  id: number;
+  name: string;
+};
+
+interface EditDefectModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (defectData: {
-    title: string;
-    description: string;
-    priority: string;
-    status: string;
-    projectId: number;
+  onSubmit: (id: number, defectData: {
+    title?: string;
+    description?: string;
+    priority?: string;
+    status?: string;
+    projectId?: number;
   }) => void;
-  projects: { id: number; name: string }[];
+  projects: Project[];
+  defects: Defect[];
+  selectedDefectId: number | null;
 }
 
-export default function AddDefectModal({ isOpen, onClose, onSubmit, projects }: AddDefectModalProps) {
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
-  const [priority, setPriority] = useState("");
-  const [status, setStatus] = useState("");
-  const [projectId, setProjectId] = useState<string>("");
-  const MAX_CHARS = 200;
+const MAX_CHARS = 500;
 
-  const handleDescriptionChange = (e: ChangeEvent<HTMLTextAreaElement>) => {
-    const newText = e.target.value;
-    if (newText.length <= MAX_CHARS) {
-      setDescription(newText);
+export default function EditDefectModal({ isOpen, onClose, onSubmit, projects, defects, selectedDefectId }: EditDefectModalProps) {
+  const [title, setTitle] = useState("");
+  const [priority, setPriority] = useState("low");
+  const [status, setStatus] = useState("new");
+  const [projectId, setProjectId] = useState("");
+  const [description, setDescription] = useState("");
+
+  useEffect(() => {
+    if (isOpen && selectedDefectId) {
+      const defect = defects.find((d) => d.id === selectedDefectId);
+      if (defect) {
+        setTitle(defect.title);
+        setPriority(defect.priority);
+        setStatus(defect.status);
+        setProjectId(defect.projectId?.toString() ?? "");
+        setDescription(defect.description);
+      }
+    } else if (isOpen) {
+      setTitle("");
+      setPriority("low");
+      setStatus("new");
+      setProjectId("");
+      setDescription("");
+    }
+  }, [isOpen, selectedDefectId, defects]);
+
+  const handleDescriptionChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    if (e.target.value.length <= MAX_CHARS) {
+      setDescription(e.target.value);
     }
   };
 
   const handleSubmit = () => {
-    if (!title) {
-      alert("Введите название дефекта");
-      return;
-    }
-    if (!projectId) {
-      alert("Выберите проект");
-      return;
-    }
-    onSubmit({
+    if (!selectedDefectId) return;
+    onSubmit(selectedDefectId, {
       title,
       description,
       priority,
       status,
-      projectId: Number(projectId),
+      projectId: projectId ? parseInt(projectId) : undefined,
     });
-    setTitle("");
-    setDescription("");
-    setPriority("low");
-    setProjectId("");
+    onClose();
   };
 
   if (!isOpen) return null;
@@ -57,7 +87,7 @@ export default function AddDefectModal({ isOpen, onClose, onSubmit, projects }: 
   return (
     <div className="fixed inset-0 bg-[rgba(0,0,0,0.5)] flex items-center justify-center z-50">
       <div className="bg-white p-6 rounded-lg w-[700px] shadow-lg space-y-4">
-        <h3 className="text-xl font-semibold text-black mb-4">Добавить дефект</h3>
+        <h3 className="text-xl font-semibold text-black mb-4">Редактировать дефект</h3>
 
         <div className="grid grid-cols-2 gap-4">
           <div>
@@ -76,7 +106,6 @@ export default function AddDefectModal({ isOpen, onClose, onSubmit, projects }: 
               onChange={(e) => setPriority(e.target.value)}
               className="w-full rounded bg-[#F0F0F0] px-4 py-3 text-black outline-none focus:ring-2 focus:ring-[#99CDD8] border-none shadow-md"
             >
-              <option value="" disabled>Выберите приоритет</option>
               <option value="low">Низкий</option>
               <option value="medium">Средний</option>
               <option value="high">Высокий</option>
@@ -93,7 +122,6 @@ export default function AddDefectModal({ isOpen, onClose, onSubmit, projects }: 
               onChange={(e) => setStatus(e.target.value)}
               className="w-full rounded bg-[#F0F0F0] px-4 py-3 text-black outline-none focus:ring-2 focus:ring-[#99CDD8] border-none shadow-md"
             >
-              <option value="" disabled>Выберите статус</option>
               <option value="new">Новый</option>
               <option value="in_progress">В работе</option>
               <option value="resolved">Исправлен</option>
@@ -108,7 +136,7 @@ export default function AddDefectModal({ isOpen, onClose, onSubmit, projects }: 
               onChange={(e) => setProjectId(e.target.value)}
               className="w-full rounded bg-[#F0F0F0] px-4 py-3 text-black outline-none focus:ring-2 focus:ring-[#99CDD8] border-none shadow-md"
             >
-              <option value="" disabled>Выберите проект</option>
+              <option value="">Выберите проект</option>
               {projects.map((project) => (
                 <option key={project.id} value={project.id.toString()}>
                   {project.name}
@@ -133,8 +161,9 @@ export default function AddDefectModal({ isOpen, onClose, onSubmit, projects }: 
 
         <div className="flex justify-center gap-2 mt-2">
           <button
-            className="px-6 py-2 rounded bg-[#8BBCC6] hover:bg-[#99CDD8] text-white"
+            className="px-6 py-2 rounded bg-[#8BBCC6] hover:bg-[#99CDD8] text-white disabled:opacity-50"
             onClick={handleSubmit}
+            disabled={!selectedDefectId}
           >
             Сохранить
           </button>

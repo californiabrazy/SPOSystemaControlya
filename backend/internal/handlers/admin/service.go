@@ -7,17 +7,17 @@ import (
 )
 
 func (h *AdminHandler) RegisterRoutes(router *gin.Engine) {
-	auth := router.Group("api/admin")
+	admin := router.Group("api/admin")
 	{
-		auth.GET("/roles", utils.AuthMiddleware(), h.ListRoles)
-		auth.GET("/users", utils.AuthMiddleware(), h.ListUsers)
-		auth.GET("/available_managers", utils.AuthMiddleware(), h.AvaliableManagers)
-		auth.GET("/projects", utils.AuthMiddleware(), h.ListProjects)
+		admin.GET("/roles", utils.AuthMiddleware(), h.ListRoles)
+		admin.GET("/users", utils.AuthMiddleware(), h.ListUsers)
+		admin.GET("/available_managers", utils.AuthMiddleware(), h.AvaliableManagers)
+		admin.GET("/projects", utils.AuthMiddleware(), h.ListProjects)
 
-		auth.POST("/projects", utils.AuthMiddleware(), h.AddProject)
-		auth.POST("/users", utils.AuthMiddleware(), h.AddUser)
+		admin.POST("/projects", utils.AuthMiddleware(), h.AddProject)
+		admin.POST("/users", utils.AuthMiddleware(), h.AddUser)
 
-		auth.DELETE("/delete_user", utils.AuthMiddleware(), h.DeleteUser)
-		auth.DELETE("/delete_project", utils.AuthMiddleware(), h.DeleteProject)
+		admin.DELETE("/delete_user", utils.AuthMiddleware(), h.DeleteUser)
+		admin.DELETE("/delete_project", utils.AuthMiddleware(), h.DeleteProject)
 	}
 }
