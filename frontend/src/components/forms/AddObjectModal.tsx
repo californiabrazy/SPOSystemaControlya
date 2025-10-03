@@ -64,7 +64,7 @@ export default function ObjectModal({ isOpen, onClose, managers, onSubmit }: Obj
           <select
             value={managerId}
             onChange={(e) => setManagerId(e.target.value)}
-            className="w-full rounded bg-[#F0F0F0] px-4 py-3 text-black outline-none focus:ring-2 focus:ring-[#99CDD8] border-none shadow-md"
+            className="w-full h-[48px] rounded bg-[#F0F0F0] px-4 py-3 text-black outline-none focus:ring-2 focus:ring-[#99CDD8] border-none shadow-md"
           >
             <option value="" disabled>
               Выберите менеджера

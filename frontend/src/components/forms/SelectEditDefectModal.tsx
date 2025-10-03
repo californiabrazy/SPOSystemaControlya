@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 type Defect = {
   id: number;
@@ -23,49 +23,67 @@ interface SelectDefectModalProps {
   defects: Defect[];
 }
 
+const PRIORITY_LABELS: Record<string, string> = {
+  critical: "Критический",
+  high: "Высокий",
+  medium: "Средний",
+  low: "Низкий",
+};
+
+const STATUS_LABELS: Record<string, string> = {
+  new: "Новый",
+  in_progress: "В работе",
+  resolved: "Решён",
+  closed: "Закрыт",
+};
+
 export default function SelectDefectModal({ isOpen, onClose, onSelect, defects }: SelectDefectModalProps) {
   const [searchTerm, setSearchTerm] = useState("");
+
+  useEffect(() => {
+    document.body.style.overflow = isOpen ? "hidden" : "";
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [isOpen]);
+
+  if (!isOpen) return null;
 
   const filteredDefects = defects.filter((defect) =>
     defect.title.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  if (!isOpen) return null;
-
   return (
     <div className="fixed inset-0 bg-[rgba(0,0,0,0.5)] flex items-center justify-center z-50">
       <div className="bg-white p-6 rounded-lg w-[700px] shadow-lg space-y-4">
-        <h3 className="text-xl font-semibold text-black mb-4">Выберите дефект для редактирования</h3>
+        <h3 className="text-xl font-semibold text-black mb-4">
+          Выберите дефект для редактирования
+        </h3>
 
         {/* Поле поиска */}
-        <div>
-          <input
-            type="text"
-            placeholder="Поиск по названию дефекта..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full rounded bg-[#F0F0F0] px-4 py-3 text-black placeholder-gray-500 outline-none focus:ring-2 focus:ring-[#99CDD8] border-none shadow-md"
-          />
-        </div>
+        <input
+          type="text"
+          placeholder="Поиск по названию дефекта..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="w-full rounded bg-[#F0F0F0] px-4 py-3 text-black placeholder-gray-500 outline-none focus:ring-2 focus:ring-[#99CDD8] border-none shadow-md"
+        />
 
-        {/* Список дефектов */}
-        <div className="max-h-[300px] overflow-y-auto">
+        {/* Список дефектов с прокруткой */}
+        <div className="max-h-64 overflow-y-auto mt-2">
           {filteredDefects.length === 0 ? (
             <p className="text-[#657166] text-center">Нет дефектов, соответствующих поиску</p>
           ) : (
             filteredDefects.map((defect) => (
               <div
                 key={defect.id}
-                onClick={() => {
-                  onSelect(defect.id);
-                  onClose();
-                }}
-                className="p-3 border-gray-200 hover:bg-[#F0F0F0] cursor-pointer transition"
+                onClick={() => { onSelect(defect.id); onClose(); }}
+                className="p-3 hover:bg-[#F0F0F0] cursor-pointer transition rounded"
               >
-                <div className="flex items-center gap-2">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:gap-2 flex-wrap">
                   <p className="font-medium text-black">{defect.title}</p>
                   <span
-                    className={`px-2 py-1 text-xs font-medium rounded ${
+                    className={`px-3 py-1 text-sm font-medium rounded ${
                       defect.priority === "critical"
                         ? "bg-[#F3B2AA]"
                         : defect.priority === "high"
@@ -75,10 +93,10 @@ export default function SelectDefectModal({ isOpen, onClose, onSelect, defects }
                         : "bg-[#F3E0B2]"
                     } text-black`}
                   >
-                    Приоритет: {defect.priority}
+                    Приоритет: {PRIORITY_LABELS[defect.priority] || defect.priority}
                   </span>
                   <span
-                    className={`px-2 py-1 text-xs font-medium rounded ${
+                    className={`px-3 py-1 text-sm font-medium rounded ${
                       defect.status === "new"
                         ? "bg-[#D0E8FF]"
                         : defect.status === "in_progress"
@@ -90,7 +108,7 @@ export default function SelectDefectModal({ isOpen, onClose, onSelect, defects }
                         : "bg-[#FEF3C7]"
                     } text-black`}
                   >
-                    Статус: {defect.status}
+                    Статус: {STATUS_LABELS[defect.status] || defect.status}
                   </span>
                 </div>
               </div>
@@ -98,7 +116,6 @@ export default function SelectDefectModal({ isOpen, onClose, onSelect, defects }
           )}
         </div>
 
-        {/* Кнопка закрытия */}
         <div className="flex justify-center mt-4">
           <button
             className="px-6 py-2 rounded bg-gray-300 hover:bg-gray-400 text-black"

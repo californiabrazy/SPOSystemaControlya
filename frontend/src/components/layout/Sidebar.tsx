@@ -51,7 +51,8 @@ export default function Sidebar({ activeTab }: SidebarProps) {
   const tabs = [
     { id: "dashboard", label: "Дашборд", icon: <LayoutDashboard size={20} />, href: "/" },
     { id: "projects", label: "Проекты", icon: <Folder size={20} />, href: "/projects" },
-    { id: "defects", label: "Дефекты", icon: <AlertTriangle size={20} />, href: "/defects" },
+    { id: "defects_engineer", label: "Дефекты", icon: <AlertTriangle size={20} />, href: "/defects/engineer" },
+    { id: "defects_manager", label: "Дефекты", icon: <AlertTriangle size={20} />, href: "/defects/manager" },
     { id: "reports", label: "Отчеты", icon: <BarChart size={20} />, href: "/reports" },
     { id: "admin_users", label: "Пользователи", icon: <Users size={20} />, href: "/admin/users" },
     { id: "admin_projects", label: "Проекты", icon: <FolderKanban size={20} />, href: "/admin/projects" },
@@ -63,7 +64,8 @@ export default function Sidebar({ activeTab }: SidebarProps) {
     return tabs.filter(
       (tab) =>
         tab.id !== "projects" &&
-        tab.id !== "defects" &&
+        tab.id !== "defects_engineer" &&
+        tab.id !== "defects_manager" &&
         tab.id !== "reports" &&
         tab.id !== "dashboard"
     );
@@ -74,7 +76,18 @@ export default function Sidebar({ activeTab }: SidebarProps) {
       (tab) =>
         tab.id !== "admin_users" && 
         tab.id !== "admin_projects" &&
-        tab.id !== "reports"
+        tab.id !== "reports" &&
+        tab.id !== "defects_manager"
+    );
+  }
+
+  if (role === "Менеджер") {
+    return tabs.filter(
+      (tab) =>
+        tab.id !== "admin_users" && 
+        tab.id !== "admin_projects" &&
+        tab.id !== "reports" &&
+        tab.id !== "defects_engineer"
     );
   }
 

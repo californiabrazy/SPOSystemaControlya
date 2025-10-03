@@ -6,14 +6,14 @@ import { useToken } from "@/hooks/useToken";
 import { useRoleGuard } from "@/hooks/useRoleGuard";
 import AddDefectModal from "@/components/forms/AddDefectModal";
 import EditDefectModal from "@/components/forms/EditDefectModal";
-import SelectDefectModal from "@/components/forms/ConfirmEditDefectModal";
+import SelectDefectModal from "@/components/forms/SelectEditDefectModal";
 
 type Defect = {
   id: number;
   title: string;
   description: string;
   priority: string;
-  status: string;
+    status: string;
   projectId: number;
   authorId: number;
   createdAt: string;
@@ -25,6 +25,20 @@ type Defect = {
 type Project = {
   id: number;
   name: string;
+};
+
+const PRIORITY_LABELS: Record<string, string> = {
+  critical: "Критический",
+  high: "Высокий",
+  medium: "Средний",
+  low: "Низкий",
+};
+
+const STATUS_LABELS: Record<string, string> = {
+  new: "Новый",
+  in_progress: "В работе",
+  resolved: "Решён",
+  closed: "Закрыт",
 };
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL!;
@@ -87,7 +101,6 @@ export default function Defects() {
     title: string;
     description: string;
     priority: string;
-    status: string;
     projectId: number;
   }) => {
     try {
@@ -126,11 +139,10 @@ export default function Defects() {
     title?: string;
     description?: string;
     priority?: string;
-    status?: string;
     projectId?: number;
   }) => {
     try {
-      const response = await fetch(`${API_URL}/api/defects/edit/${id}`, {
+      const response = await fetch(`${API_URL}/api/defects/edit/byengineer/${id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -209,8 +221,9 @@ export default function Defects() {
                         : "bg-[#F3E0B2]"
                     } text-black`}
                   >
-                    Приоритет: {defect.priority}
+                    Приоритет: {PRIORITY_LABELS[defect.priority] || defect.priority}
                   </span>
+
                   <span
                     className={`px-3 py-1 text-sm font-medium rounded ${
                       defect.status === "new"
@@ -224,8 +237,9 @@ export default function Defects() {
                         : "bg-[#FEF3C7]"
                     } text-black`}
                   >
-                    Статус: {defect.status}
+                    Статус: {STATUS_LABELS[defect.status] || defect.status}
                   </span>
+
                 </div>
               </div>
 

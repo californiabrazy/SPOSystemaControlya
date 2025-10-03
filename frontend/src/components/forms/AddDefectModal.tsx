@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, ChangeEvent } from "react";
+import { useState, ChangeEvent, useEffect } from "react";
 
 interface AddDefectModalProps {
   isOpen: boolean;
@@ -9,7 +9,6 @@ interface AddDefectModalProps {
     title: string;
     description: string;
     priority: string;
-    status: string;
     projectId: number;
   }) => void;
   projects: { id: number; name: string }[];
@@ -19,7 +18,6 @@ export default function AddDefectModal({ isOpen, onClose, onSubmit, projects }: 
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [priority, setPriority] = useState("");
-  const [status, setStatus] = useState("");
   const [projectId, setProjectId] = useState<string>("");
   const MAX_CHARS = 200;
 
@@ -43,7 +41,6 @@ export default function AddDefectModal({ isOpen, onClose, onSubmit, projects }: 
       title,
       description,
       priority,
-      status,
       projectId: Number(projectId),
     });
     setTitle("");
@@ -52,6 +49,19 @@ export default function AddDefectModal({ isOpen, onClose, onSubmit, projects }: 
     setProjectId("");
   };
 
+  useEffect(() => {
+      if (isOpen) {
+        document.body.style.overflow = "hidden";
+      } else {
+        document.body.style.overflow = "";
+      }
+  
+      // При размонтировании компонента сбросим на всякий случай
+      return () => {
+        document.body.style.overflow = "";
+      };
+    }, [isOpen]);
+
   if (!isOpen) return null;
 
   return (
@@ -59,7 +69,8 @@ export default function AddDefectModal({ isOpen, onClose, onSubmit, projects }: 
       <div className="bg-white p-6 rounded-lg w-[700px] shadow-lg space-y-4">
         <h3 className="text-xl font-semibold text-black mb-4">Добавить дефект</h3>
 
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid gap-4">
+          {/* Первая строка — только Название */}
           <div>
             <p className="ml-1 mb-1">Название дефекта</p>
             <input
@@ -69,52 +80,38 @@ export default function AddDefectModal({ isOpen, onClose, onSubmit, projects }: 
               className="w-full rounded bg-[#F0F0F0] px-4 py-3 text-black placeholder-black outline-none focus:ring-2 focus:ring-[#99CDD8] border-none shadow-md"
             />
           </div>
-          <div>
-            <p className="ml-1 mb-1">Приоритет</p>
-            <select
-              value={priority}
-              onChange={(e) => setPriority(e.target.value)}
-              className="w-full rounded bg-[#F0F0F0] px-4 py-3 text-black outline-none focus:ring-2 focus:ring-[#99CDD8] border-none shadow-md"
-            >
-              <option value="" disabled>Выберите приоритет</option>
-              <option value="low">Низкий</option>
-              <option value="medium">Средний</option>
-              <option value="high">Высокий</option>
-              <option value="critical">Критический</option>
-            </select>
-          </div>
-        </div>
 
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <p className="ml-1 mb-1">Статус</p>
-            <select
-              value={status}
-              onChange={(e) => setStatus(e.target.value)}
-              className="w-full rounded bg-[#F0F0F0] px-4 py-3 text-black outline-none focus:ring-2 focus:ring-[#99CDD8] border-none shadow-md"
-            >
-              <option value="" disabled>Выберите статус</option>
-              <option value="new">Новый</option>
-              <option value="in_progress">В работе</option>
-              <option value="resolved">Исправлен</option>
-              <option value="closed">Закрыт</option>
-              <option value="reopened">Возобновлен</option>
-            </select>
-          </div>
-          <div>
-            <p className="ml-1 mb-1">Проект</p>
-            <select
-              value={projectId}
-              onChange={(e) => setProjectId(e.target.value)}
-              className="w-full rounded bg-[#F0F0F0] px-4 py-3 text-black outline-none focus:ring-2 focus:ring-[#99CDD8] border-none shadow-md"
-            >
-              <option value="" disabled>Выберите проект</option>
-              {projects.map((project) => (
-                <option key={project.id} value={project.id.toString()}>
-                  {project.name}
-                </option>
-              ))}
-            </select>
+          {/* Вторая строка — Приоритет и Проект */}
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <p className="ml-1 mb-1">Приоритет</p>
+              <select
+                value={priority}
+                onChange={(e) => setPriority(e.target.value)}
+                className="w-full rounded bg-[#F0F0F0] px-4 py-3 text-black outline-none focus:ring-2 focus:ring-[#99CDD8] border-none shadow-md"
+              >
+                <option value="" disabled>Выберите приоритет</option>
+                <option value="low">Низкий</option>
+                <option value="medium">Средний</option>
+                <option value="high">Высокий</option>
+                <option value="critical">Критический</option>
+              </select>
+            </div>
+            <div>
+              <p className="ml-1 mb-1">Проект</p>
+              <select
+                value={projectId}
+                onChange={(e) => setProjectId(e.target.value)}
+                className="w-full rounded bg-[#F0F0F0] px-4 py-3 text-black outline-none focus:ring-2 focus:ring-[#99CDD8] border-none shadow-md"
+              >
+                <option value="" disabled>Выберите проект</option>
+                {projects.map((project) => (
+                  <option key={project.id} value={project.id.toString()}>
+                    {project.name}
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
         </div>
 

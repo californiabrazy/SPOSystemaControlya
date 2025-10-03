@@ -10,6 +10,7 @@ type Defect struct {
 	Description string    `gorm:"type:text;not null" json:"description"`
 	Priority    string    `gorm:"type:varchar(20);not null;check:priority IN ('low','medium','high','critical')" json:"priority"`
 	Status      string    `gorm:"type:varchar(20);not null;check:status IN ('new','in_progress','resolved','closed','reopened')" json:"status"`
+	Assignee    string    `gorm:"type:varchar(30)" json:"assignee"`
 	CreatedAt   time.Time `gorm:"type:timestamp with time zone;default:CURRENT_TIMESTAMP;not null" json:"createdAt"`
 	UpdatedAt   time.Time `gorm:"type:timestamp with time zone;default:CURRENT_TIMESTAMP;not null" json:"updatedAt"`
 

@@ -7,7 +7,6 @@ type Defect = {
   title: string;
   description: string;
   priority: string;
-  status: string;
   projectId: number;
   authorId: number;
   createdAt: string;
@@ -28,7 +27,6 @@ interface EditDefectModalProps {
     title?: string;
     description?: string;
     priority?: string;
-    status?: string;
     projectId?: number;
   }) => void;
   projects: Project[];
@@ -36,13 +34,12 @@ interface EditDefectModalProps {
   selectedDefectId: number | null;
 }
 
-const MAX_CHARS = 500;
+const MAX_CHARS = 200;
 
 export default function EditDefectModal({ isOpen, onClose, onSubmit, projects, defects, selectedDefectId }: EditDefectModalProps) {
   const [title, setTitle] = useState("");
   const [priority, setPriority] = useState("low");
   const [status, setStatus] = useState("new");
-  const [projectId, setProjectId] = useState("");
   const [description, setDescription] = useState("");
 
   useEffect(() => {
@@ -51,15 +48,12 @@ export default function EditDefectModal({ isOpen, onClose, onSubmit, projects, d
       if (defect) {
         setTitle(defect.title);
         setPriority(defect.priority);
-        setStatus(defect.status);
-        setProjectId(defect.projectId?.toString() ?? "");
         setDescription(defect.description);
       }
     } else if (isOpen) {
       setTitle("");
       setPriority("low");
       setStatus("new");
-      setProjectId("");
       setDescription("");
     }
   }, [isOpen, selectedDefectId, defects]);
@@ -76,11 +70,22 @@ export default function EditDefectModal({ isOpen, onClose, onSubmit, projects, d
       title,
       description,
       priority,
-      status,
-      projectId: projectId ? parseInt(projectId) : undefined,
     });
     onClose();
   };
+
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+
+    // При размонтировании компонента сбросим на всякий случай
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
@@ -104,44 +109,12 @@ export default function EditDefectModal({ isOpen, onClose, onSubmit, projects, d
             <select
               value={priority}
               onChange={(e) => setPriority(e.target.value)}
-              className="w-full rounded bg-[#F0F0F0] px-4 py-3 text-black outline-none focus:ring-2 focus:ring-[#99CDD8] border-none shadow-md"
+              className="w-full h-[48px] rounded bg-[#F0F0F0] px-4 py-3 text-black outline-none focus:ring-2 focus:ring-[#99CDD8] border-none shadow-md"
             >
               <option value="low">Низкий</option>
               <option value="medium">Средний</option>
               <option value="high">Высокий</option>
               <option value="critical">Критический</option>
-            </select>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <p className="ml-1 mb-1">Статус</p>
-            <select
-              value={status}
-              onChange={(e) => setStatus(e.target.value)}
-              className="w-full rounded bg-[#F0F0F0] px-4 py-3 text-black outline-none focus:ring-2 focus:ring-[#99CDD8] border-none shadow-md"
-            >
-              <option value="new">Новый</option>
-              <option value="in_progress">В работе</option>
-              <option value="resolved">Исправлен</option>
-              <option value="closed">Закрыт</option>
-              <option value="reopened">Возобновлен</option>
-            </select>
-          </div>
-          <div>
-            <p className="ml-1 mb-1">Проект</p>
-            <select
-              value={projectId}
-              onChange={(e) => setProjectId(e.target.value)}
-              className="w-full rounded bg-[#F0F0F0] px-4 py-3 text-black outline-none focus:ring-2 focus:ring-[#99CDD8] border-none shadow-md"
-            >
-              <option value="">Выберите проект</option>
-              {projects.map((project) => (
-                <option key={project.id} value={project.id.toString()}>
-                  {project.name}
-                </option>
-              ))}
             </select>
           </div>
         </div>

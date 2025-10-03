@@ -24,7 +24,17 @@ type CreateDefectInput struct {
 	Title       string `gorm:"type:varchar(200);not null" json:"title"`
 	Description string `gorm:"type:text;not null" json:"description"`
 	Priority    string `gorm:"type:varchar(20);not null;check:priority IN ('low','medium','high','critical')" json:"priority"`
-	Status      string `gorm:"type:varchar(20);not null;check:status IN ('new','in_progress','resolved','closed','reopened')" json:"status"`
 	ProjectID   uint   `gorm:"not null" json:"projectId"`
 	AuthorID    uint   `gorm:"not null" json:"author_id"`
+}
+
+type EngineerEditDefectInput struct {
+	Title       string `gorm:"type:varchar(200);not null" json:"title"`
+	Description string `gorm:"type:text;not null" json:"description"`
+	Priority    string `gorm:"type:varchar(20);not null;check:priority IN ('low','medium','high','critical')" json:"priority"`
+}
+
+type ManagerEditDefectInput struct {
+	Status   string `gorm:"type:varchar(20);not null;check:status IN ('new','in_progress','resolved','closed','reopened')" json:"status"`
+	Assignee string `gorm:"type:varchar(30)" json:"assignee"`
 }

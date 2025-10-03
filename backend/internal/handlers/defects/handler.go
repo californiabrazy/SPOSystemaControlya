@@ -36,7 +36,7 @@ func (h *DefectHandler) AddDefect(c *gin.Context) {
 		Title:       input.Title,
 		Description: input.Description,
 		Priority:    input.Priority,
-		Status:      input.Status,
+		Status:      "new",
 		ProjectID:   input.ProjectID,
 		AuthorID:    authorID,
 	}
@@ -62,6 +62,12 @@ func (h *DefectHandler) AddDefect(c *gin.Context) {
 	})
 }
 
+func (h *DefectHandler) ListDefects(c *gin.Context) {
+	var defects []models.Defect
+	h.db.Preload("Project").Find(&defects)
+	c.JSON(http.StatusOK, defects)
+}
+
 func (h *DefectHandler) UserListDefects(c *gin.Context) {
 	var defects []models.Defect
 
@@ -80,7 +86,7 @@ func (h *DefectHandler) UserListDefects(c *gin.Context) {
 	c.JSON(http.StatusOK, defects)
 }
 
-func (h *DefectHandler) EditDefect(c *gin.Context) {
+func (h *DefectHandler) EngineerEditDefect(c *gin.Context) {
 	defectParamsID := c.Param("id")
 	defectID, err := strconv.Atoi(defectParamsID)
 	if err != nil {
@@ -88,18 +94,11 @@ func (h *DefectHandler) EditDefect(c *gin.Context) {
 		return
 	}
 
-	var input models.CreateDefectInput
+	var input models.EngineerEditDefectInput
 	if err := c.ShouldBindJSON(&input); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Неверный формат данных"})
 		return
 	}
-
-	userID, exists := c.Get("userID")
-	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Не удалось определить пользователя"})
-		return
-	}
-	authorID := uint(userID.(float64))
 
 	var defect models.Defect
 	if err := h.db.First(&defect, defectID).Error; err != nil {
@@ -110,9 +109,54 @@ func (h *DefectHandler) EditDefect(c *gin.Context) {
 	defect.Title = input.Title
 	defect.Description = input.Description
 	defect.Priority = input.Priority
-	defect.Status = input.Status
-	defect.ProjectID = input.ProjectID
-	defect.AuthorID = authorID
+
+	if defect.Assignee != "" {
+		c.JSON(http.StatusForbidden, gin.H{"error": "Нельзя редактировать дефект после назначения исполнителя"})
+		return
+	}
+
+	if err := h.db.Save(&defect).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Не удалось обновить дефект"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"defect": defect})
+}
+
+func (h *DefectHandler) ManagerEditDefect(c *gin.Context) {
+	defectParamsID := c.Param("id")
+	defectID, err := strconv.Atoi(defectParamsID)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Неверный ID дефекта"})
+		return
+	}
+
+	var input models.ManagerEditDefectInput
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Неверный формат данных"})
+		return
+	}
+
+	var defect models.Defect
+	if err := h.db.First(&defect, defectID).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Дефект не найден"})
+		return
+	}
+
+	if defect.Assignee == "" {
+		if input.Assignee != "" {
+			defect.Assignee = input.Assignee
+		}
+	} else {
+		if input.Assignee != "" && input.Assignee != defect.Assignee {
+			c.JSON(http.StatusForbidden, gin.H{"error": "Нельзя изменить назначенного исполнителя"})
+			return
+		}
+	}
+
+	if input.Status != "" {
+		defect.Status = input.Status
+	}
 
 	if err := h.db.Save(&defect).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Не удалось обновить дефект"})

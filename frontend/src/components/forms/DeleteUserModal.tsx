@@ -1,4 +1,14 @@
-type User = { id: number; first_name: string; last_name: string; middle_name: string; email: string; role: { id: number; name: string } };
+"use client";
+import { useState } from "react";
+
+type User = { 
+  id: number; 
+  first_name: string; 
+  last_name: string; 
+  middle_name: string; 
+  email: string; 
+  role: { id: number; name: string }; 
+};
 
 interface DeleteUserModalProps {
   isOpen: boolean;
@@ -8,18 +18,36 @@ interface DeleteUserModalProps {
 }
 
 export default function DeleteUserModal({ isOpen, onClose, users, onSelect }: DeleteUserModalProps) {
+  const [searchTerm, setSearchTerm] = useState("");
+
   if (!isOpen) return null;
+
+  const filteredUsers = users.filter((user) =>
+    `${user.last_name} ${user.first_name} ${user.middle_name}`
+      .toLowerCase()
+      .includes(searchTerm.toLowerCase())
+  );
 
   return (
     <div className="fixed inset-0 bg-[rgba(0,0,0,0.5)] flex items-center justify-center z-50">
       <div className="bg-white rounded p-6 w-full max-w-md">
         <h2 className="text-xl font-semibold mb-4 text-black">Выберите пользователя для удаления</h2>
+
+        {/* Поле поиска */}
+        <input
+          type="text"
+          placeholder="Поиск по пользователям..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="w-full rounded bg-[#F0F0F0] mb-4 px-4 py-3 text-black placeholder-gray-500 outline-none focus:ring-2 focus:ring-[#99CDD8] border-none shadow-md"        />
+
+        {/* Список пользователей с прокруткой */}
         <div className="max-h-64 overflow-y-auto mb-4">
-          {users.length === 0 ? (
-            <p className="text-gray-500">Нет пользователей для удаления</p>
+          {filteredUsers.length === 0 ? (
+            <p className="text-gray-500">Нет пользователей, соответствующих поиску</p>
           ) : (
             <ul className="space-y-2">
-              {users.map((user) => (
+              {filteredUsers.map((user) => (
                 <li
                   key={user.id}
                   className="p-2 hover:bg-gray-100 cursor-pointer rounded"
@@ -34,6 +62,7 @@ export default function DeleteUserModal({ isOpen, onClose, users, onSelect }: De
             </ul>
           )}
         </div>
+
         <div className="flex justify-center gap-2">
           <button
             className="bg-gray-300 text-black px-4 py-2 rounded hover:bg-gray-400"

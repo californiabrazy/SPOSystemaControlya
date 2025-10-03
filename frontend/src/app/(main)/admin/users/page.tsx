@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import UserModal from "@/components/forms/UserModal";
+import UserModal from "@/components/forms/AddUserModal";
 import DeleteUserModal from "@/components/forms/DeleteUserModal";
 import ConfirmDeleteModal from "@/components/forms/ConfirmDeleteUserModal";
 import { useToken } from "@/hooks/useToken";
