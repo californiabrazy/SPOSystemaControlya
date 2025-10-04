@@ -106,7 +106,6 @@ export default function Sidebar({ activeTab }: SidebarProps) {
     } finally {
       localStorage.removeItem("access_token");
       localStorage.removeItem("user");
-      // document.cookie = `refresh_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; secure; samesite=strict`;
       setIsLogoutOpen(false);
       router.push("/login");
     }
@@ -149,7 +148,7 @@ export default function Sidebar({ activeTab }: SidebarProps) {
 
         <button
           onClick={() => setIsLogoutOpen(true)}
-          className="flex items-center space-x-2 p-2 w-full text-left rounded transition-colors text-white bg-black hover:bg-[#333333]"
+          className="flex items-center space-x-2 p-2 w-full text-left rounded transition-colors text-white bg-[#4A5678] hover:bg-[#37415C]"
         >
           <LogOut size={20} />
           <span>Выход</span>

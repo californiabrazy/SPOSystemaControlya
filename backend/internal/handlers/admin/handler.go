@@ -25,6 +25,11 @@ func (h *AdminHandler) AddUser(c *gin.Context) {
 		return
 	}
 
+	if len(input.Password) < 10 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Пароль должен содержать минимум 10 символов"})
+		return
+	}
+
 	hashedPassword, err := utils.HashPassword(input.Password)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Ошибка хеширования пароля"})

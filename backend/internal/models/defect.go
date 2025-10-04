@@ -13,6 +13,7 @@ type Defect struct {
 	Assignee    string    `gorm:"type:varchar(30)" json:"assignee"`
 	CreatedAt   time.Time `gorm:"type:timestamp with time zone;default:CURRENT_TIMESTAMP;not null" json:"createdAt"`
 	UpdatedAt   time.Time `gorm:"type:timestamp with time zone;default:CURRENT_TIMESTAMP;not null" json:"updatedAt"`
+	Attachments []string  `gorm:"type:jsonb;serializer:json" json:"attachments"`
 
 	ProjectID uint    `gorm:"not null" json:"project_id"`
 	Project   Project `gorm:"foreignKey:ProjectID;constraint:OnDelete:CASCADE" json:"project"`

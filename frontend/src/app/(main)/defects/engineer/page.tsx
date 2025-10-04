@@ -7,17 +7,19 @@ import { useRoleGuard } from "@/hooks/useRoleGuard";
 import AddDefectModal from "@/components/forms/AddDefectModal";
 import EditDefectModal from "@/components/forms/EditDefectModal";
 import SelectDefectModal from "@/components/forms/SelectEditDefectModal";
+import DefectDetailsModal from "@/components/forms/DefectDetailsModal";
 
 type Defect = {
   id: number;
   title: string;
   description: string;
   priority: string;
-    status: string;
+  status: string;
   projectId: number;
   authorId: number;
   createdAt: string;
   updatedAt: string;
+  attachments?: string[];
   author?: { id: number; first_name: string; last_name: string; middle_name: string };
   project?: { id: number; name: string };
 };
@@ -52,6 +54,8 @@ export default function Defects() {
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showSelectModal, setShowSelectModal] = useState(false);
+  const [showDetailsModal, setShowDetailsModal] = useState(false); // Новое состояние для модалки деталей
+  const [selectedDefect, setSelectedDefect] = useState<Defect | null>(null); // Выбранный дефект для деталей
   const [selectedDefectId, setSelectedDefectId] = useState<number | null>(null);
   const router = useRouter();
 
@@ -97,37 +101,35 @@ export default function Defects() {
     initialize();
   }, [checkToken, router]);
 
-  const handleAddDefect = useCallback(async (defectData: {
-    title: string;
-    description: string;
-    priority: string;
-    projectId: number;
-  }) => {
+  const handleAddDefect = useCallback(async (formData: FormData) => {
     try {
       const response = await fetch(`${API_URL}/api/defects/add`, {
         method: "POST",
         headers: {
-          "Content-Type": "application/json",
           Authorization: `Bearer ${localStorage.getItem("access_token")}`,
         },
-        body: JSON.stringify(defectData),
+        body: formData,
       });
       if (!response.ok) throw new Error("Ошибка при добавлении дефекта");
 
       const result = await response.json();
-      setDefects((prev) => [...prev, {
-        id: result.defect.id,
-        title: result.defect.title,
-        description: result.defect.description,
-        priority: result.defect.priority,
-        status: result.defect.status,
-        projectId: result.defect.project_id,
-        authorId: result.defect.author_id,
-        createdAt: result.defect.created_at,
-        updatedAt: result.defect.updated_at,
-        author: result.defect.author,
-        project: result.defect.project,
-      }]);
+      setDefects((prev) => [
+        ...prev,
+        {
+          id: result.defect.id,
+          title: result.defect.title,
+          description: result.defect.description,
+          priority: result.defect.priority,
+          status: result.defect.status,
+          projectId: result.defect.project_id,
+          authorId: result.defect.author_id,
+          createdAt: result.defect.created_at,
+          updatedAt: result.defect.updated_at,
+          author: result.defect.author,
+          project: result.defect.project,
+          attachments: result.defect.attachments || [],
+        },
+      ]);
       setShowAddModal(false);
     } catch (error) {
       console.error("Ошибка:", error);
@@ -135,20 +137,15 @@ export default function Defects() {
     }
   }, []);
 
-  const handleEditDefect = useCallback(async (id: number, defectData: {
-    title?: string;
-    description?: string;
-    priority?: string;
-    projectId?: number;
-  }) => {
+  const handleEditDefect = useCallback(
+  async (id: number, formData: FormData) => {
     try {
       const response = await fetch(`${API_URL}/api/defects/edit/byengineer/${id}`, {
         method: "PUT",
         headers: {
-          "Content-Type": "application/json",
           Authorization: `Bearer ${localStorage.getItem("access_token")}`,
         },
-        body: JSON.stringify(defectData),
+        body: formData,
       });
       if (!response.ok) throw new Error("Ошибка при редактировании дефекта");
 
@@ -161,7 +158,10 @@ export default function Defects() {
       console.error("Ошибка:", error);
       alert("Не удалось редактировать дефект");
     }
-  }, []);
+  },
+  []
+);
+
 
   const handleSelectDefect = useCallback((defectId: number) => {
     setSelectedDefectId(defectId);
@@ -169,25 +169,22 @@ export default function Defects() {
     setShowEditModal(true);
   }, []);
 
-  if (dataLoading || roleLoading) {
-    return <div className="min-h-screen flex items-center justify-center">Загрузка...</div>;
-  }
-
+  if (dataLoading || roleLoading) return <div className="min-h-screen flex items-center justify-center">Загрузка...</div>;
   if (role !== "Инженер") return null;
 
   return (
     <div className="bg-[#f0f9fa]">
-      <div className="flex justify-between items-center mb-4">
-        <h1 className="text-2xl font-bold">Дефекты</h1>
-        <div className="flex gap-2">
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-2xl font-bold text-gray-900">Дефекты</h1>
+        <div className="flex gap-3">
           <button
-            className="bg-[#8BBCC6] text-white px-4 py-2 rounded hover:bg-[#99CDD8]"
+            className="bg-[#8BBCC6] text-white px-4 py-2 rounded-md hover:bg-[#99CDD8] transition-colors"
             onClick={() => setShowAddModal(true)}
           >
             Добавить
           </button>
           <button
-            className="bg-black text-white px-4 py-2 rounded hover:bg-[#333333]"
+            className="bg-[#4A5678] text-white px-4 py-2 rounded-md hover:bg-[#37415C] transition-colors"
             onClick={() => setShowSelectModal(true)}
           >
             Редактировать
@@ -196,92 +193,56 @@ export default function Defects() {
       </div>
 
       {defects.length === 0 ? (
-        <p className="text-[#657166] mt-4 flex justify-center">
-          Нет добавленных дефектов
-        </p>
+        <p className="text-[#657166] mt-6 flex justify-center text-lg">Нет добавленных дефектов</p>
       ) : (
-        <div className="mt-4 grid gap-4 grid-cols-1">
+        <div className="mt-6 grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
           {defects.map((defect) => (
             <div
               key={defect.id}
-              className="bg-white rounded shadow-md border border-gray-200 p-6 flex flex-row items-center justify-between gap-6 transition hover:shadow-lg"
+              className="bg-white rounded-lg shadow-md border border-gray-200 p-4 flex flex-col gap-3 transition hover:shadow-lg cursor-pointer w-full max-w-[300px] mx-auto"
+              onClick={() => {
+                setSelectedDefect(defect);
+                setShowDetailsModal(true);
+              }}
             >
-              <div className="flex-1">
-                <h3 className="font-bold text-xl text-gray-900 mb-2">{defect.title}</h3>
-                <p className="text-[#657166] text-base mb-4">{defect.description}</p>
-                <div className="flex flex-wrap gap-2">
-                  <span
-                    className={`px-3 py-1 text-sm font-medium rounded ${
-                      defect.priority === "critical"
-                        ? "bg-[#F3B2AA]"
-                        : defect.priority === "high"
-                        ? "bg-[#F3C3B2]"
-                        : defect.priority === "medium"
-                        ? "bg-[#F3D1B2]"
-                        : "bg-[#F3E0B2]"
-                    } text-black`}
-                  >
-                    Приоритет: {PRIORITY_LABELS[defect.priority] || defect.priority}
-                  </span>
-
-                  <span
-                    className={`px-3 py-1 text-sm font-medium rounded ${
-                      defect.status === "new"
-                        ? "bg-[#D0E8FF]"
-                        : defect.status === "in_progress"
-                        ? "bg-[#E5D6FF]"
-                        : defect.status === "resolved"
-                        ? "bg-[#D1FCD8]"
-                        : defect.status === "closed"
-                        ? "bg-[#F3F4F6]"
-                        : "bg-[#FEF3C7]"
-                    } text-black`}
-                  >
-                    Статус: {STATUS_LABELS[defect.status] || defect.status}
-                  </span>
-
-                </div>
-              </div>
-
-              <div className="text-left text-[#657166] space-y-2 pl-6 border-gray-200 flex flex-col justify-center">
-                <p>
-                  <span className="font-medium text-black">Проект:</span>{" "}
-                  {defect.project ? defect.project.name : `ID ${defect.projectId}`}
-                </p>
-                <p>
-                  <span className="font-medium text-black">Автор:</span>{" "}
-                  {defect.author
-                    ? `${defect.author.first_name} ${defect.author.last_name} ${defect.author.middle_name}`
-                    : `ID ${defect.authorId}`}
-                </p>
-                <p>
-                  <span className="font-medium text-black">Создано:</span>{" "}
-                  {new Date(defect.createdAt).toLocaleString()}
-                </p>
-                <p>
-                  <span className="font-medium text-black">Обновлено:</span>{" "}
-                  {new Date(defect.updatedAt).toLocaleString()}
-                </p>
+              <h3 className="font-bold text-lg text-gray-900 line-clamp-2">{defect.title}</h3>
+              <div className="flex flex-col gap-2">
+                <span
+                  className={`inline-block px-2 py-1 text-xs font-medium rounded ${
+                    defect.priority === "critical"
+                      ? "bg-[#F3B2AA]"
+                      : defect.priority === "high"
+                      ? "bg-[#F3C3B2]"
+                      : defect.priority === "medium"
+                      ? "bg-[#F3D1B2]"
+                      : "bg-[#F3E0B2]"
+                  } text-black w-fit`}
+                >
+                  Приоритет: {PRIORITY_LABELS[defect.priority] || defect.priority}
+                </span>
+                <span
+                  className={`inline-block px-2 py-1 text-xs font-medium rounded ${
+                    defect.status === "new"
+                      ? "bg-[#D0E8FF]"
+                      : defect.status === "in_progress"
+                      ? "bg-[#E5D6FF]"
+                      : defect.status === "resolved"
+                      ? "bg-[#D1FCD8]"
+                      : defect.status === "closed"
+                      ? "bg-[#F3F4F6]"
+                      : "bg-[#FEF3C7]"
+                  } text-black w-fit`}
+                >
+                  Статус: {STATUS_LABELS[defect.status] || defect.status}
+                </span>
               </div>
             </div>
           ))}
         </div>
       )}
 
-      <AddDefectModal
-        isOpen={showAddModal}
-        onClose={() => setShowAddModal(false)}
-        onSubmit={handleAddDefect}
-        projects={projects}
-      />
-
-      <SelectDefectModal
-        isOpen={showSelectModal}
-        onClose={() => setShowSelectModal(false)}
-        onSelect={handleSelectDefect}
-        defects={defects}
-      />
-
+      <AddDefectModal isOpen={showAddModal} onClose={() => setShowAddModal(false)} onSubmit={handleAddDefect} projects={projects} />
+      <SelectDefectModal isOpen={showSelectModal} onClose={() => setShowSelectModal(false)} onSelect={handleSelectDefect} defects={defects} />
       <EditDefectModal
         isOpen={showEditModal}
         onClose={() => {
@@ -292,6 +253,11 @@ export default function Defects() {
         projects={projects}
         defects={defects}
         selectedDefectId={selectedDefectId}
+      />
+      <DefectDetailsModal
+        isOpen={showDetailsModal}
+        onClose={() => setShowDetailsModal(false)}
+        defect={selectedDefect}
       />
     </div>
   );

@@ -52,7 +52,7 @@ export default function ManagerDefects() {
           return;
         }
 
-        const res = await fetch(`${API_URL}/api/defects/all`, {
+        const res = await fetch(`${API_URL}/api/defects/yours/manager`, {
           headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${localStorage.getItem("access_token")}`,
@@ -105,11 +105,11 @@ export default function ManagerDefects() {
   if (role !== "Менеджер") return null;
 
   return (
-    <div className="bg-[#f0f9fa] min-h-screen p-6">
+    <div className="bg-[#f0f9fa]">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">Дефекты</h1>
+        <h1 className="text-2xl font-bold text-gray-900">Дефекты</h1>
         <button
-          className="bg-black text-white px-4 py-2 rounded hover:bg-[#333333]"
+          className="bg-[#4A5678] text-white px-4 py-2 rounded-md hover:bg-[#37415C] transition-colors"
           onClick={() => setShowSelectModal(true)}
         >
           Редактировать
@@ -117,23 +117,23 @@ export default function ManagerDefects() {
       </div>
 
       {defects.length === 0 ? (
-        <p className="text-[#657166] flex justify-center mt-6">Нет дефектов</p>
+        <p className="text-[#657166] mt-6 flex justify-center text-lg">Нет дефектов</p>
       ) : (
-        <div className="grid gap-4">
+        <div className="mt-6 grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
           {defects.map((defect) => (
             <div
               key={defect.id}
-              className="bg-white p-6 rounded shadow-md flex flex-col md:flex-row justify-between items-start md:items-center gap-6 hover:shadow-lg transition"
+              className="bg-white rounded-lg shadow-md border border-gray-200 p-4 flex flex-col gap-3 transition hover:shadow-lg cursor-pointer w-full max-w-[300px] mx-auto"
             >
-              {/* Левая часть */}
+              {/* Верхняя часть: название и описание */}
               <div className="flex-1">
-                <h3 className="font-bold text-xl text-gray-900 mb-2">{defect.title}</h3>
-                <p className="text-[#657166] text-base mb-4">{defect.description}</p>
+                <h3 className="font-bold text-lg text-gray-900 line-clamp-2 mb-2">{defect.title}</h3>
+                <p className="text-[#657166] text-sm line-clamp-3 mb-3">{defect.description}</p>
 
                 {/* Приоритет и статус */}
-                <div className="flex gap-2 flex-wrap">
+                <div className="flex flex-col gap-2">
                   <span
-                    className={`px-3 py-1 text-sm font-medium rounded ${
+                    className={`inline-block px-2 py-1 text-xs font-medium rounded ${
                       defect.priority === "critical"
                         ? "bg-[#F3B2AA]"
                         : defect.priority === "high"
@@ -141,12 +141,12 @@ export default function ManagerDefects() {
                         : defect.priority === "medium"
                         ? "bg-[#F3D1B2]"
                         : "bg-[#F3E0B2]"
-                    } text-black`}
+                    } text-black w-fit`}
                   >
                     {PRIORITY_LABELS[defect.priority]}
                   </span>
                   <span
-                    className={`px-3 py-1 text-sm font-medium rounded ${
+                    className={`inline-block px-2 py-1 text-xs font-medium rounded ${
                       defect.status === "new"
                         ? "bg-[#D0E8FF]"
                         : defect.status === "in_progress"
@@ -154,15 +154,15 @@ export default function ManagerDefects() {
                         : defect.status === "resolved"
                         ? "bg-[#D1FCD8]"
                         : "bg-[#F3F4F6]"
-                    } text-black`}
+                    } text-black w-fit`}
                   >
                     {STATUS_LABELS[defect.status]}
                   </span>
                 </div>
               </div>
 
-              {/* Правая часть */}
-              <div className="text-left text-[#657166] space-y-2 md:text-right md:pl-6 min-w-[200px]">
+              {/* Нижняя часть: исполнитель и проект */}
+              <div className="text-[#657166] space-y-1 text-sm">
                 <p>
                   <span className="font-medium text-black">Исполнитель:</span>{" "}
                   {defect.assignee || "не назначен"}

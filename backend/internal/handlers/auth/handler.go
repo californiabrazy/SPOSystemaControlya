@@ -65,7 +65,7 @@ func (h *AuthHandler) Login(c *gin.Context) {
 		60*60*24*7,
 		"/",
 		"",
-		false, // secure (HTTPS)
+		false, // secure
 		true,  // HttpOnly
 	)
 

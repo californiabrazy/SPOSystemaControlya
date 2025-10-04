@@ -10,7 +10,8 @@ func (h *DefectHandler) RegisterRoutes(router *gin.Engine) {
 	defect := router.Group("api/defects")
 	{
 		defect.GET("/yours", utils.AuthMiddleware(), h.UserListDefects)
-		defect.GET("/all", utils.AuthMiddleware(), h.ListDefects)
+		defect.GET("/yours/manager", utils.AuthMiddleware(), h.ManagerListDefects)
+		defect.GET("/download/:filename", h.AttachmentsDownload)
 
 		defect.POST("/add", utils.AuthMiddleware(), h.AddDefect)
 

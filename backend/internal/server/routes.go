@@ -15,15 +15,17 @@ func (s *Server) RegisterRoutes() http.Handler {
 	r := gin.Default()
 
 	r.Use(cors.New(cors.Config{
-		AllowOrigins:     []string{"http://localhost:3001"}, //Docker - 3001, Local - 3000
+		AllowOrigins:     []string{"http://localhost:3000"}, //Docker - 3001, Local - 3000
 		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"},
 		AllowHeaders:     []string{"Accept", "Authorization", "Content-Type"},
 		AllowCredentials: true,
 	}))
 
-	r.OPTIONS("/*path", func(c *gin.Context) {
-		c.Status(http.StatusOK)
-	})
+	// r.OPTIONS("/*path", func(c *gin.Context) {
+	// 	c.Status(http.StatusOK)
+	// })
+
+	r.Static("/uploads", "./uploads")
 
 	//Login
 	authHandler := auth.NewAuthHandler(s.db.DB())
