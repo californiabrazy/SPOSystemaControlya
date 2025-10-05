@@ -46,3 +46,12 @@ type DefectAttachment struct {
 	FilePath string `json:"file_path"`
 	FileName string `json:"file_name"`
 }
+
+type ProjectSummary struct {
+	ID             uint   `json:"id"`
+	Name           string `json:"name"`
+	Description    string `json:"description"`
+	DefectsCount   int    `json:"defects_count"`
+	EngineersCount int    `json:"engineers_count"`
+	AssigneesCount int    `json:"assignees_count"`
+}

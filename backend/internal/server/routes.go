@@ -6,6 +6,7 @@ import (
 	"systemacontrolya/internal/handlers/admin"
 	"systemacontrolya/internal/handlers/auth"
 	"systemacontrolya/internal/handlers/defects"
+	"systemacontrolya/internal/handlers/projects"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -21,10 +22,6 @@ func (s *Server) RegisterRoutes() http.Handler {
 		AllowCredentials: true,
 	}))
 
-	// r.OPTIONS("/*path", func(c *gin.Context) {
-	// 	c.Status(http.StatusOK)
-	// })
-
 	r.Static("/uploads", "./uploads")
 
 	//Login
@@ -38,6 +35,10 @@ func (s *Server) RegisterRoutes() http.Handler {
 	//Defects
 	defectHandler := defects.NewDefectHandler(s.db.DB())
 	defectHandler.RegisterRoutes(r)
+
+	//Projects
+	projectHandler := projects.NewProjectHandler(s.db.DB())
+	projectHandler.RegisterRoutes(r)
 
 	return r
 }

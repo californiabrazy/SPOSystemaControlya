@@ -48,7 +48,7 @@ export default function Sidebar({ activeTab }: SidebarProps) {
 
   const tabs = [
     { id: "dashboard", label: "Дашборд", icon: <LayoutDashboard size={20} />, href: "/" },
-    { id: "projects", label: "Проекты", icon: <Folder size={20} />, href: "/projects" },
+    { id: "projects", label: "Проект", icon: <Folder size={20} />, href: "/projects/manager" },
     { id: "defects_engineer", label: "Дефекты", icon: <AlertTriangle size={20} />, href: "/defects/engineer" },
     { id: "defects_manager", label: "Дефекты", icon: <AlertTriangle size={20} />, href: "/defects/manager" },
     { id: "reports", label: "Отчеты", icon: <BarChart size={20} />, href: "/reports" },

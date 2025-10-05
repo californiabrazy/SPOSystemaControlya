@@ -128,7 +128,6 @@ export default function ManagerDefects() {
               {/* Верхняя часть: название и описание */}
               <div className="flex-1">
                 <h3 className="font-bold text-lg text-gray-900 line-clamp-2 mb-2">{defect.title}</h3>
-                <p className="text-[#657166] text-sm line-clamp-3 mb-3">{defect.description}</p>
 
                 {/* Приоритет и статус */}
                 <div className="flex flex-col gap-2">
@@ -166,10 +165,6 @@ export default function ManagerDefects() {
                 <p>
                   <span className="font-medium text-black">Исполнитель:</span>{" "}
                   {defect.assignee || "не назначен"}
-                </p>
-                <p>
-                  <span className="font-medium text-black">Проект:</span>{" "}
-                  {defect.project ? defect.project.name : `ID ${defect.projectId}`}
                 </p>
               </div>
             </div>
