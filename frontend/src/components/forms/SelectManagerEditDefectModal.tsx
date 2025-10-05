@@ -91,7 +91,7 @@ export default function SelectDefectModal({ defects, isOpen, onClose, onSelect }
                         : "bg-[#F3E0B2]"
                     } text-black`}
                   >
-                    {PRIORITY_LABELS[defect.priority]}
+                    Приоритет: {PRIORITY_LABELS[defect.priority]}
                   </span>
                   <span
                     className={`px-3 py-1 text-sm font-medium rounded ${
@@ -104,7 +104,7 @@ export default function SelectDefectModal({ defects, isOpen, onClose, onSelect }
                         : "bg-[#F3F4F6]"
                     } text-black`}
                   >
-                    {STATUS_LABELS[defect.status]}
+                    Статус: {STATUS_LABELS[defect.status]}
                   </span>
                 </div>
               </div>

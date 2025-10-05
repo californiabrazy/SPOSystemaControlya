@@ -199,6 +199,17 @@ func (h *DefectHandler) ManagerEditDefect(c *gin.Context) {
 	}
 
 	if input.Status != "" {
+		if defect.Status == "new" {
+			if input.Status != "in_progress" {
+				c.JSON(http.StatusBadRequest, gin.H{"error": "Из статуса 'new' можно перейти только в 'in_progress'"})
+				return
+			}
+		} else {
+			if input.Status == "new" {
+				c.JSON(http.StatusBadRequest, gin.H{"error": "Нельзя возвращать дефект в статус 'new'"})
+				return
+			}
+		}
 		defect.Status = input.Status
 	}
 

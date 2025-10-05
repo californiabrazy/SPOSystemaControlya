@@ -47,7 +47,7 @@ func (h *AuthHandler) Login(c *gin.Context) {
 	accessToken := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"id":   user.ID,
 		"role": user.Role.Name,
-		"exp":  time.Now().Add(time.Minute * 1).Unix(),
+		"exp":  time.Now().Add(time.Minute * 15).Unix(),
 	})
 
 	refreshToken := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
@@ -108,7 +108,7 @@ func (h *AuthHandler) Refresh(c *gin.Context) {
 	newAccess := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"id":   userID,
 		"role": role,
-		"exp":  time.Now().Add(time.Minute * 1).Unix(),
+		"exp":  time.Now().Add(time.Minute * 15).Unix(),
 	})
 
 	newAccessString, err := newAccess.SignedString([]byte(os.Getenv("JWT_SECRET")))

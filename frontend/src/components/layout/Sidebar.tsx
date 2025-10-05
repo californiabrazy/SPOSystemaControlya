@@ -1,12 +1,11 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import {
   LayoutDashboard,
   Folder,
   AlertTriangle,
   BarChart,
-  Settings,
   Users,
   LogOut,
   FolderKanban,
@@ -25,10 +24,9 @@ interface SidebarProps {
   activeTab?: string;
 }
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL!; 
+const API_URL = process.env.NEXT_PUBLIC_API_URL!;
 
 export default function Sidebar({ activeTab }: SidebarProps) {
-  const isActive = (tabId: string) => tabId === activeTab;
   const router = useRouter();
   const pathname = usePathname();
   const [isLogoutOpen, setIsLogoutOpen] = useState(false);
@@ -56,50 +54,49 @@ export default function Sidebar({ activeTab }: SidebarProps) {
     { id: "reports", label: "Отчеты", icon: <BarChart size={20} />, href: "/reports" },
     { id: "admin_users", label: "Пользователи", icon: <Users size={20} />, href: "/admin/users" },
     { id: "admin_projects", label: "Проекты", icon: <FolderKanban size={20} />, href: "/admin/projects" },
-    { id: "settings", label: "Настройки", icon: <Settings size={20} />, href: "/settings" },
   ];
 
   const visibleTabs = (() => {
-  if (role === "Админ") {
-    return tabs.filter(
-      (tab) =>
-        tab.id !== "projects" &&
-        tab.id !== "defects_engineer" &&
-        tab.id !== "defects_manager" &&
-        tab.id !== "reports" &&
-        tab.id !== "dashboard"
-    );
-  }
+    if (role === "Админ") {
+      return tabs.filter(
+        (tab) =>
+          tab.id !== "projects" &&
+          tab.id !== "defects_engineer" &&
+          tab.id !== "defects_manager" &&
+          tab.id !== "reports" &&
+          tab.id !== "dashboard"
+      );
+    }
 
-  if (role === "Инженер") {
-    return tabs.filter(
-      (tab) =>
-        tab.id !== "admin_users" && 
-        tab.id !== "admin_projects" &&
-        tab.id !== "reports" &&
-        tab.id !== "defects_manager"
-    );
-  }
+    if (role === "Инженер") {
+      return tabs.filter(
+        (tab) =>
+          tab.id !== "admin_users" &&
+          tab.id !== "admin_projects" &&
+          tab.id !== "reports" &&
+          tab.id !== "defects_manager" &&
+          tab.id !== "projects"
+      );
+    }
 
-  if (role === "Менеджер") {
-    return tabs.filter(
-      (tab) =>
-        tab.id !== "admin_users" && 
-        tab.id !== "admin_projects" &&
-        tab.id !== "reports" &&
-        tab.id !== "defects_engineer"
-    );
-  }
+    if (role === "Менеджер") {
+      return tabs.filter(
+        (tab) =>
+          tab.id !== "admin_users" &&
+          tab.id !== "admin_projects" &&
+          tab.id !== "reports" &&
+          tab.id !== "defects_engineer"
+      );
+    }
 
-  return tabs; 
-})();
-
+    return tabs;
+  })();
 
   const handleConfirmLogout = async () => {
     try {
       await fetch(`${API_URL}/api/auth/logout`, {
         method: "POST",
-        credentials: "include", // отправка HttpOnly cookie
+        credentials: "include",
       });
     } catch (_err: unknown) {
       console.error("Ошибка при выходе:", _err);
@@ -117,7 +114,7 @@ export default function Sidebar({ activeTab }: SidebarProps) {
 
   return (
     <>
-      <aside className="w-64 bg-white text-[#657166] p-6 shadow-md flex flex-col justify-between">
+      <aside className="fixed top-0 left-0 w-64 h-screen bg-white text-[#657166] p-6 shadow-md flex flex-col justify-between">
         <div>
           <div
             className="text-2xl font-bold flex justify-center text-[#8A9D67] mb-8 border rounded border-3 cursor-pointer"

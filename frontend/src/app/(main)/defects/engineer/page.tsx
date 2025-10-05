@@ -57,6 +57,8 @@ export default function Defects() {
   const [showDetailsModal, setShowDetailsModal] = useState(false); // Новое состояние для модалки деталей
   const [selectedDefect, setSelectedDefect] = useState<Defect | null>(null); // Выбранный дефект для деталей
   const [selectedDefectId, setSelectedDefectId] = useState<number | null>(null);
+  const [tooltipPos, setTooltipPos] = useState({ x: 0, y: 0 });
+  const [showTooltip, setShowTooltip] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -196,48 +198,69 @@ export default function Defects() {
         <p className="text-[#657166] mt-6 flex justify-center text-lg">Нет добавленных дефектов</p>
       ) : (
         <div className="mt-6 grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
-          {defects.map((defect) => (
-            <div
-              key={defect.id}
-              className="bg-white rounded-lg shadow-md border border-gray-200 p-4 flex flex-col gap-3 transition hover:shadow-lg cursor-pointer w-full max-w-[300px] mx-auto"
-              onClick={() => {
-                setSelectedDefect(defect);
-                setShowDetailsModal(true);
-              }}
-            >
-              <h3 className="font-bold text-lg text-gray-900 line-clamp-2">{defect.title}</h3>
-              <div className="flex flex-col gap-2">
-                <span
-                  className={`inline-block px-2 py-1 text-xs font-medium rounded ${
-                    defect.priority === "critical"
-                      ? "bg-[#F3B2AA]"
-                      : defect.priority === "high"
-                      ? "bg-[#F3C3B2]"
-                      : defect.priority === "medium"
-                      ? "bg-[#F3D1B2]"
-                      : "bg-[#F3E0B2]"
-                  } text-black w-fit`}
-                >
-                  Приоритет: {PRIORITY_LABELS[defect.priority] || defect.priority}
-                </span>
-                <span
-                  className={`inline-block px-2 py-1 text-xs font-medium rounded ${
-                    defect.status === "new"
-                      ? "bg-[#D0E8FF]"
-                      : defect.status === "in_progress"
-                      ? "bg-[#E5D6FF]"
-                      : defect.status === "resolved"
-                      ? "bg-[#D1FCD8]"
-                      : defect.status === "closed"
-                      ? "bg-[#F3F4F6]"
-                      : "bg-[#FEF3C7]"
-                  } text-black w-fit`}
-                >
-                  Статус: {STATUS_LABELS[defect.status] || defect.status}
-                </span>
+          {defects.map((defect) => {
+
+            return (
+              <div
+                key={defect.id}
+                className="relative w-full max-w-[300px] mx-auto"
+                onClick={() => {
+                  setSelectedDefect(defect);
+                  setShowDetailsModal(true);
+                }}
+                onMouseMove={(e) => {
+                  setTooltipPos({ x: e.clientX + 10, y: e.clientY + 10 }); // смещение от курсора
+                }}
+                onMouseEnter={() => setShowTooltip(true)}
+                onMouseLeave={() => setShowTooltip(false)}
+              >
+                {/* Карточка */}
+                <div className="bg-white rounded-lg shadow-md border border-gray-200 p-4 flex flex-col gap-3 transition hover:shadow-lg cursor-pointer">
+                  <h3 className="font-bold text-lg text-gray-900 line-clamp-2">{defect.title}</h3>
+                  <div className="flex flex-col gap-2">
+                    <span
+                      className={`inline-block px-2 py-1 text-xs font-medium rounded ${
+                        defect.priority === "critical"
+                          ? "bg-[#F3B2AA]"
+                          : defect.priority === "high"
+                          ? "bg-[#F3C3B2]"
+                          : defect.priority === "medium"
+                          ? "bg-[#F3D1B2]"
+                          : "bg-[#F3E0B2]"
+                      } text-black w-fit`}
+                    >
+                      Приоритет: {PRIORITY_LABELS[defect.priority] || defect.priority}
+                    </span>
+                    <span
+                      className={`inline-block px-2 py-1 text-xs font-medium rounded ${
+                        defect.status === "new"
+                          ? "bg-[#D0E8FF]"
+                          : defect.status === "in_progress"
+                          ? "bg-[#E5D6FF]"
+                          : defect.status === "resolved"
+                          ? "bg-[#D1FCD8]"
+                          : defect.status === "closed"
+                          ? "bg-[#F3F4F6]"
+                          : "bg-[#FEF3C7]"
+                      } text-black w-fit`}
+                    >
+                      Статус: {STATUS_LABELS[defect.status] || defect.status}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Тултип около курсора */}
+                {showTooltip && (
+                  <span
+                    className="fixed bg-[#8A9D67] text-white text-xs px-2 py-1 rounded shadow-md pointer-events-none z-50"
+                    style={{ left: tooltipPos.x, top: tooltipPos.y }}
+                  >
+                    Подробнее
+                  </span>
+                )}
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
 

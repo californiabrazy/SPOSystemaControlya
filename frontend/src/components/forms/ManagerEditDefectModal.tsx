@@ -25,12 +25,17 @@ const STATUS_OPTIONS = [
 
 export default function DefectEditModal({ defect, isOpen, onClose, onSave }: Props) {
   const [assignee, setAssignee] = useState(defect?.assignee || "");
-  const [status, setStatus] = useState(defect?.status || "new");
+  const [status, setStatus] = useState("");
 
   useEffect(() => {
     if (defect) {
       setAssignee(defect.assignee || "");
-      setStatus(defect.status);
+      // Устанавливаем статус в зависимости от текущего
+      if (defect.status === "new") {
+        setStatus("in_progress"); // По умолчанию "В работе" для новых дефектов
+      } else {
+        setStatus(defect.status);
+      }
     }
   }, [defect]);
 
@@ -40,6 +45,18 @@ export default function DefectEditModal({ defect, isOpen, onClose, onSave }: Pro
   }, [isOpen]);
 
   if (!isOpen || !defect) return null;
+
+  const handleSave = () => {
+    // Проверка на обязательные поля
+    if (!assignee.trim() || !status) {
+      alert("Ошибка: Необходимо указать исполнителя и статус дефекта!");
+      return;
+    }
+
+    // Если все в порядке, сохраняем
+    onSave(defect.id, { assignee, status });
+    onClose();
+  };
 
   return (
     <div className="fixed inset-0 bg-[rgba(0,0,0,0.5)] flex items-center justify-center z-50">
@@ -75,19 +92,31 @@ export default function DefectEditModal({ defect, isOpen, onClose, onSave }: Pro
               onChange={(e) => setStatus(e.target.value)}
               className="w-full h-[48px] rounded bg-[#F0F0F0] px-4 py-3 text-black outline-none focus:ring-2 focus:ring-[#99CDD8] border-none shadow-md"
             >
-              {STATUS_OPTIONS.map((s) => (
+              {/* Псевдо-плейсхолдер */}
+              <option value="" disabled>
+                Выбрать
+              </option>
+
+              {STATUS_OPTIONS.filter((s) => {
+                if (defect.status === "new") return s.value === "in_progress";
+                if (defect.status === "in_progress") return s.value !== "new";
+                if (defect.status === "resolved") return s.value !== "new";
+                if (defect.status === "closed") return s.value !== "new";
+                return true;
+              }).map((s) => (
                 <option key={s.value} value={s.value}>
                   {s.label}
                 </option>
               ))}
             </select>
           </div>
+
         </div>
 
         <div className="flex justify-center gap-2 mt-2">
           <button
             className="px-6 py-2 rounded bg-[#8BBCC6] hover:bg-[#99CDD8] text-white disabled:opacity-50"
-            onClick={() => { onSave(defect.id, { assignee, status }); onClose(); }}
+            onClick={handleSave}
           >
             Сохранить
           </button>

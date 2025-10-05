@@ -143,7 +143,7 @@ export default function ManagerDefects() {
                         : "bg-[#F3E0B2]"
                     } text-black w-fit`}
                   >
-                    {PRIORITY_LABELS[defect.priority]}
+                    Приоритет: {PRIORITY_LABELS[defect.priority]}
                   </span>
                   <span
                     className={`inline-block px-2 py-1 text-xs font-medium rounded ${
@@ -156,7 +156,7 @@ export default function ManagerDefects() {
                         : "bg-[#F3F4F6]"
                     } text-black w-fit`}
                   >
-                    {STATUS_LABELS[defect.status]}
+                    Статус: {STATUS_LABELS[defect.status]}
                   </span>
                 </div>
               </div>
