@@ -7,6 +7,7 @@ import (
 	"systemacontrolya/internal/handlers/auth"
 	"systemacontrolya/internal/handlers/defects"
 	"systemacontrolya/internal/handlers/projects"
+	"systemacontrolya/internal/handlers/reports"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -39,6 +40,10 @@ func (s *Server) RegisterRoutes() http.Handler {
 	//Projects
 	projectHandler := projects.NewProjectHandler(s.db.DB())
 	projectHandler.RegisterRoutes(r)
+
+	//Reports
+	reportHander := reports.NewReportsHandler(s.db.DB())
+	reportHander.RegisterRoutes(r)
 
 	return r
 }

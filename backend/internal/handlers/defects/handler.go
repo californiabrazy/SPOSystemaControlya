@@ -124,7 +124,7 @@ func (h *DefectHandler) EngineerEditDefect(c *gin.Context) {
 		return
 	}
 
-	if defect.Assignee != "" {
+	if defect.Assignee != "" || defect.Status != "new" {
 		c.JSON(http.StatusForbidden, gin.H{"error": "Нельзя редактировать дефект после назначения исполнителя"})
 		return
 	}

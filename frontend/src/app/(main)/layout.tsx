@@ -2,7 +2,7 @@
 
 import React from "react";
 import Sidebar from "../../components/layout/Sidebar";
-import Header from "../../components/layout/Header";
+// import Header from "../../components/layout/Header";
 import { usePathname } from "next/navigation";
 
 interface SidebarProps {
@@ -24,7 +24,7 @@ export default function MainLayout({
       <Sidebar activeTab={activeTab} />
       <div className="flex-1 flex flex-col ml-64">
         {/* Добавляем отступ слева, чтобы контент не перекрывался с фиксированной боковой панелью */}
-        <Header />
+        {/* <Header /> */}
         <main className="flex-1 p-6 bg-[#F0F9FA]">{children}</main>
       </div>
     </div>

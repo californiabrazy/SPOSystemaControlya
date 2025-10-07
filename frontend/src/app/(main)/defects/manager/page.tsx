@@ -39,8 +39,13 @@ export default function ManagerDefects() {
   const { loading: roleLoading, role } = useRoleGuard(["Менеджер"]);
   const [dataLoading, setDataLoading] = useState(true);
   const [defects, setDefects] = useState<Defect[]>([]);
+  const [filteredDefects, setFilteredDefects] = useState<Defect[]>([]);
   const [showSelectModal, setShowSelectModal] = useState(false);
   const [selectedDefect, setSelectedDefect] = useState<Defect | null>(null);
+  const [filters, setFilters] = useState({
+    priority: "",
+    status: "",
+  });
   const router = useRouter();
 
   useEffect(() => {
@@ -72,6 +77,21 @@ export default function ManagerDefects() {
     fetchDefects();
   }, [checkToken, router]);
 
+  // Фильтрация дефектов
+  useEffect(() => {
+    let result = [...defects];
+
+    // Применение фильтров
+    if (filters.priority) {
+      result = result.filter((defect) => defect.priority === filters.priority);
+    }
+    if (filters.status) {
+      result = result.filter((defect) => defect.status === filters.status);
+    }
+
+    setFilteredDefects(result);
+  }, [defects, filters]);
+
   const handleEditDefect = useCallback(
     async (id: number, updatedFields: { assignee?: string; status?: string }) => {
       try {
@@ -98,6 +118,10 @@ export default function ManagerDefects() {
     []
   );
 
+  const handleFilterChange = (key: keyof typeof filters, value: string) => {
+    setFilters((prev) => ({ ...prev, [key]: value }));
+  };
+
   if (dataLoading || roleLoading) {
     return <div className="min-h-screen flex items-center justify-center">Загрузка...</div>;
   }
@@ -107,7 +131,35 @@ export default function ManagerDefects() {
   return (
     <div className="bg-[#f0f9fa]">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Дефекты</h1>
+        <div className="flex items-center gap-4">
+          <h1 className="text-2xl font-bold text-gray-900">Дефекты</h1>
+          <div className="flex gap-3">
+            <select
+              value={filters.priority}
+              onChange={(e) => handleFilterChange("priority", e.target.value)}
+              className="w-[150px] h-[40px] rounded bg-white px-2 py-1 text-sm text-black outline-none focus:ring-2 focus:ring-[#99CDD8] border-none shadow-md"
+            >
+              <option value="">Все приоритеты</option>
+              {Object.entries(PRIORITY_LABELS).map(([value, label]) => (
+                <option key={value} value={value}>
+                  {label}
+                </option>
+              ))}
+            </select>
+            <select
+              value={filters.status}
+              onChange={(e) => handleFilterChange("status", e.target.value)}
+              className="w-[150px] h-[40px] rounded bg-white px-2 py-1 text-sm text-black outline-none focus:ring-2 focus:ring-[#99CDD8] border-none shadow-md"
+            >
+              <option value="">Все статусы</option>
+              {Object.entries(STATUS_LABELS).map(([value, label]) => (
+                <option key={value} value={value}>
+                  {label}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
         <button
           className="bg-[#4A5678] text-white px-4 py-2 rounded-md hover:bg-[#37415C] transition-colors"
           onClick={() => setShowSelectModal(true)}
@@ -116,11 +168,11 @@ export default function ManagerDefects() {
         </button>
       </div>
 
-      {defects.length === 0 ? (
+      {filteredDefects.length === 0 ? (
         <p className="text-[#657166] mt-6 flex justify-center text-lg">Нет дефектов</p>
       ) : (
         <div className="mt-6 grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
-          {defects.map((defect) => (
+          {filteredDefects.map((defect) => (
             <div
               key={defect.id}
               className="bg-white rounded-lg shadow-md border border-gray-200 p-4 flex flex-col gap-3 transition hover:shadow-lg cursor-pointer w-full max-w-[300px] mx-auto"
