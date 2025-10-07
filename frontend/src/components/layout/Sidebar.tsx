@@ -51,7 +51,6 @@ export default function Sidebar({ activeTab }: SidebarProps) {
     { id: "projects", label: "Проект", icon: <Folder size={20} />, href: "/projects/manager" },
     { id: "defects_engineer", label: "Дефекты", icon: <AlertTriangle size={20} />, href: "/defects/engineer" },
     { id: "defects_manager", label: "Дефекты", icon: <AlertTriangle size={20} />, href: "/defects/manager" },
-    { id: "reports", label: "Отчеты", icon: <BarChart size={20} />, href: "/reports" },
     { id: "admin_users", label: "Пользователи", icon: <Users size={20} />, href: "/admin/users" },
     { id: "admin_projects", label: "Проекты", icon: <FolderKanban size={20} />, href: "/admin/projects" },
   ];
@@ -63,7 +62,6 @@ export default function Sidebar({ activeTab }: SidebarProps) {
           tab.id !== "projects" &&
           tab.id !== "defects_engineer" &&
           tab.id !== "defects_manager" &&
-          tab.id !== "reports" &&
           tab.id !== "dashboard"
       );
     }
@@ -73,7 +71,6 @@ export default function Sidebar({ activeTab }: SidebarProps) {
         (tab) =>
           tab.id !== "admin_users" &&
           tab.id !== "admin_projects" &&
-          tab.id !== "reports" &&
           tab.id !== "defects_manager" &&
           tab.id !== "projects"
       );
@@ -84,7 +81,6 @@ export default function Sidebar({ activeTab }: SidebarProps) {
         (tab) =>
           tab.id !== "admin_users" &&
           tab.id !== "admin_projects" &&
-          tab.id !== "reports" &&
           tab.id !== "defects_engineer"
       );
     }
@@ -94,7 +90,6 @@ export default function Sidebar({ activeTab }: SidebarProps) {
         (tab) =>
           tab.id !== "admin_users" &&
           tab.id !== "admin_projects" &&
-          tab.id !== "reports" &&
           tab.id !== "defects_engineer" &&
           tab.id !== "projects" &&
           tab.id !== "defects_manager" &&

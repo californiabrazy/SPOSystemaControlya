@@ -8,26 +8,7 @@ import AddDefectModal from "@/components/forms/AddDefectModal";
 import EditDefectModal from "@/components/forms/EditDefectModal";
 import SelectDefectModal from "@/components/forms/SelectEditDefectModal";
 import DefectDetailsModal from "@/components/forms/DefectDetailsModal";
-
-type Defect = {
-  id: number;
-  title: string;
-  description: string;
-  priority: string;
-  status: string;
-  projectId: number;
-  authorId: number;
-  createdAt: string;
-  updatedAt: string;
-  attachments?: string[];
-  author?: { id: number; first_name: string; last_name: string; middle_name: string };
-  project?: { id: number; name: string };
-};
-
-type Project = {
-  id: number;
-  name: string;
-};
+import {Defect, Project} from "@/types/models"
 
 const PRIORITY_LABELS: Record<string, string> = {
   critical: "Критический",
@@ -58,8 +39,6 @@ export default function Defects() {
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [selectedDefect, setSelectedDefect] = useState<Defect | null>(null);
   const [selectedDefectId, setSelectedDefectId] = useState<number | null>(null);
-  const [tooltipPos, setTooltipPos] = useState({ x: 0, y: 0 });
-  const [showTooltip, setShowTooltip] = useState(false);
   const [filters, setFilters] = useState({
     priority: "",
     status: "",
@@ -110,6 +89,28 @@ export default function Defects() {
 
     setFilteredDefects(result);
   }, [defects, filters]);
+
+  useEffect(() => {
+    const fetchProjects = async () => {
+      try {
+        const response = await fetch(`${API_URL}/api/projects/all`, {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+          },
+        });
+        if (!response.ok) throw new Error("Не удалось загрузить проекты");
+
+        const data: Project[] = await response.json();
+        setProjects(data);
+      } catch (err) {
+        console.error("Ошибка загрузки проектов:", err);
+      }
+    };
+
+    fetchProjects();
+  }, []);
+
 
   const handleAddDefect = useCallback(async (formData: FormData) => {
     try {
@@ -245,11 +246,6 @@ export default function Defects() {
                 setSelectedDefect(defect);
                 setShowDetailsModal(true);
               }}
-              onMouseMove={(e) => {
-                setTooltipPos({ x: e.clientX + 10, y: e.clientY + 10 });
-              }}
-              onMouseEnter={() => setShowTooltip(true)}
-              onMouseLeave={() => setShowTooltip(false)}
             >
               {/* Карточка */}
               <div className="bg-white rounded-lg shadow-md border border-gray-200 p-4 flex flex-col gap-3 transition hover:shadow-lg cursor-pointer">
@@ -285,16 +281,6 @@ export default function Defects() {
                   </span>
                 </div>
               </div>
-
-              {/* Тултип около курсора */}
-              {showTooltip && (
-                <span
-                  className="fixed bg-[#8A9D67] text-white text-xs px-2 py-1 rounded shadow-md pointer-events-none z-50"
-                  style={{ left: tooltipPos.x, top: tooltipPos.y }}
-                >
-                  Подробнее
-                </span>
-              )}
             </div>
           ))}
         </div>

@@ -175,7 +175,7 @@ export default function ManagerDefects() {
           {filteredDefects.map((defect) => (
             <div
               key={defect.id}
-              className="bg-white rounded-lg shadow-md border border-gray-200 p-4 flex flex-col gap-3 transition hover:shadow-lg cursor-pointer w-full max-w-[300px] mx-auto"
+              className="bg-white rounded-lg shadow-md border border-gray-200 p-4 flex flex-col gap-3 transition hover:shadow-lg w-full max-w-[300px] mx-auto"
             >
               {/* Верхняя часть: название и описание */}
               <div className="flex-1">

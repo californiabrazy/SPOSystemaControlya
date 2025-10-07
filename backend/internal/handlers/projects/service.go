@@ -10,5 +10,6 @@ func (h *ProjectsHandler) RegisterRoutes(router *gin.Engine) {
 	project := router.Group("api/projects")
 	{
 		project.GET("/your", utils.AuthMiddleware(), h.ManagerListProjects)
+		project.GET("/all", utils.AuthMiddleware(), h.ListProjects)
 	}
 }

@@ -7,16 +7,7 @@ import DeleteUserModal from "@/components/forms/DeleteUserModal";
 import ConfirmDeleteModal from "@/components/forms/ConfirmDeleteUserModal";
 import { useToken } from "@/hooks/useToken";
 import { useRoleGuard } from "@/hooks/useRoleGuard";
-
-type User = {
-  id: number;
-  first_name: string;
-  last_name: string;
-  middle_name: string;
-  email: string;
-  role: { id: number; name: string };
-};
-type Role = { id: number; name: string };
+import {User, Role} from "@/types/models"
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL!;
 

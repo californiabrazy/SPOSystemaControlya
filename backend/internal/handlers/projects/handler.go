@@ -47,3 +47,12 @@ func (h *ProjectsHandler) ManagerListProjects(c *gin.Context) {
 
 	c.JSON(http.StatusOK, summaries)
 }
+
+func (h *ProjectsHandler) ListProjects(c *gin.Context) {
+	var projects []models.Project
+	if err := h.db.Find(&projects).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Ошибка загрузки проектов"})
+		return
+	}
+	c.JSON(http.StatusOK, projects)
+}

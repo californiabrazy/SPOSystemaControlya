@@ -40,7 +40,7 @@ CREATE TABLE IF NOT EXISTS reports (
     title VARCHAR(255) NOT NULL,
     project_id INTEGER REFERENCES projects(id),
     user_id INTEGER NOT NULL REFERENCES users(id),
-    file_path JSONB NOT NULL DEFAULT '[]'::jsonb, 
+    file_paths JSONB NOT NULL DEFAULT '[]'::jsonb, 
     description TEXT,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL
 );
