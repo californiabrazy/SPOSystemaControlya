@@ -12,6 +12,7 @@ func (h *ReportsHandler) RegisterRoutes(router *gin.Engine) {
 		report.GET("/download/:filename", utils.AuthMiddleware(), h.DownloadReportFile)
 		report.GET("/all", utils.AuthMiddleware(), h.ListReports)
 		report.GET("/your", utils.AuthMiddleware(), h.ManagerListReports)
+		router.GET("/export/:id/csv", h.ExportReportCSV)
 
 		report.POST("/add", utils.AuthMiddleware(), h.AddReport)
 	}

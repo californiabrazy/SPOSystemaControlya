@@ -58,7 +58,7 @@ export default function ManagerProject() {
   return (
     <div className="bg-[#f0f9fa]">
       <h1 className="text-2xl font-bold text-gray-900 mb-6">{project.name}</h1>
-      <p className="text-gray-500 text-base bg-white p-4 rounded-md shadow-sm mb-6">{project.description}</p>
+      <p className="text-gray-500 text-base bg-white p-4 rounded-md shadow-sm mb-2">{project.description}</p>
 
       <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
         {/* Количество дефектов */}

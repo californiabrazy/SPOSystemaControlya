@@ -2,22 +2,15 @@
 
 import React, { useState, ChangeEvent } from "react";
 
-type Project = {
-  id: number;
-  name: string;
-};
-
 interface AddReportModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSubmit: (formData: FormData) => void;
-  projects: Project[];
 }
 
-const AddReportModal: React.FC<AddReportModalProps> = ({ isOpen, onClose, onSubmit, projects }) => {
+const AddReportModal: React.FC<AddReportModalProps> = ({ isOpen, onClose, onSubmit }) => {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
-  const [projectId, setProjectId] = useState("");
   const [files, setFiles] = useState<FileList | null>(null);
   const MAX_CHARS = 200;
 
@@ -30,23 +23,26 @@ const AddReportModal: React.FC<AddReportModalProps> = ({ isOpen, onClose, onSubm
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!title || !projectId) {
-      alert("Заполните все обязательные поля");
+    if (!title) {
+      alert("Заполните заголовок");
       return;
     }
+
     const formData = new FormData();
     formData.append("title", title);
     formData.append("description", description);
-    formData.append("project_id", projectId);
+
     if (files) {
       for (let i = 0; i < files.length; i++) {
         formData.append("files", files[i]);
       }
     }
+
     onSubmit(formData);
+
+    // Очистка формы
     setTitle("");
     setDescription("");
-    setProjectId("");
     setFiles(null);
   };
 
@@ -56,6 +52,7 @@ const AddReportModal: React.FC<AddReportModalProps> = ({ isOpen, onClose, onSubm
     <div className="fixed inset-0 bg-[rgba(0,0,0,0.5)] flex items-center justify-center z-50">
       <div className="bg-white p-6 rounded-lg w-96 shadow-lg space-y-4">
         <h2 className="text-xl font-semibold text-black">Создать отчет</h2>
+
         <div>
           <p className="ml-3">Заголовок</p>
           <input
@@ -66,6 +63,7 @@ const AddReportModal: React.FC<AddReportModalProps> = ({ isOpen, onClose, onSubm
             required
           />
         </div>
+
         <div className="relative">
           <p className="ml-3">Описание</p>
           <textarea
@@ -78,24 +76,7 @@ const AddReportModal: React.FC<AddReportModalProps> = ({ isOpen, onClose, onSubm
             {description.length} / {MAX_CHARS} символов
           </div>
         </div>
-        <div>
-          <p className="ml-3">Проект</p>
-          <select
-            value={projectId}
-            onChange={(e) => setProjectId(e.target.value)}
-            className="w-full h-[48px] rounded bg-[#F0F0F0] px-4 py-3 text-black outline-none focus:ring-2 focus:ring-[#99CDD8] border-none shadow-md"
-            required
-          >
-            <option value="" disabled>
-              Выберите проект
-            </option>
-            {projects.map((project) => (
-              <option key={project.id} value={project.id}>
-                {project.name}
-              </option>
-            ))}
-          </select>
-        </div>
+
         <div>
           <p className="ml-3">Файлы</p>
           <input
@@ -105,6 +86,7 @@ const AddReportModal: React.FC<AddReportModalProps> = ({ isOpen, onClose, onSubm
             className="w-full rounded bg-[#F0F0F0] px-4 py-3 text-black outline-none focus:ring-2 focus:ring-[#99CDD8] border-none shadow-md"
           />
         </div>
+
         <div className="flex justify-center gap-2">
           <button
             type="submit"

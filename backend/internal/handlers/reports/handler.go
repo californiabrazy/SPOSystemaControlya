@@ -1,11 +1,12 @@
 package reports
 
 import (
+	"bytes"
+	"encoding/csv"
 	"fmt"
 	"net/http"
 	"os"
 	"path/filepath"
-	"strconv"
 	"systemacontrolya/internal/models"
 	"time"
 
@@ -38,10 +39,9 @@ func (h *ReportsHandler) AddReport(c *gin.Context) {
 	title := c.PostForm("title")
 	description := c.PostForm("description")
 
-	projectIDStr := c.PostForm("project_id")
-	projectID, err := strconv.Atoi(projectIDStr)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Некорректный project_id"})
+	var project models.Project
+	if err := h.db.Where("manager_id = ?", userID).First(&project).Error; err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Проект менеджера не найден"})
 		return
 	}
 
@@ -75,7 +75,7 @@ func (h *ReportsHandler) AddReport(c *gin.Context) {
 
 	report := models.Report{
 		Title:       title,
-		ProjectID:   uint(projectID),
+		ProjectID:   project.ID,
 		UserID:      userID,
 		Description: description,
 		FilePaths:   savedPaths,
@@ -136,4 +136,36 @@ func (h *ReportsHandler) ManagerListReports(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, reports)
+}
+
+func (h *ReportsHandler) ExportReportCSV(c *gin.Context) {
+	id := c.Param("id")
+
+	var report models.Report
+	if err := h.db.Preload("User").Preload("Project").First(&report, id).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Отчёт не найден"})
+		return
+	}
+
+	b := &bytes.Buffer{}
+	b.Write([]byte{0xEF, 0xBB, 0xBF})
+
+	writer := csv.NewWriter(b)
+	writer.Comma = ';'
+
+	writer.Write([]string{"Название", "Описание", "Дата создания", "Автор", "Проект"})
+
+	writer.Write([]string{
+		report.Title,
+		report.Description,
+		report.CreatedAt.Format("2006-01-02 15:04"),
+		fmt.Sprintf("%s %s", report.User.LastName, report.User.FirstName),
+		report.Project.Name,
+	})
+
+	writer.Flush()
+
+	filename := fmt.Sprintf("report_%d.csv", report.ID)
+	c.Header("Content-Disposition", fmt.Sprintf("attachment; filename=%s", filename))
+	c.Data(http.StatusOK, "text/csv; charset=utf-8", b.Bytes())
 }

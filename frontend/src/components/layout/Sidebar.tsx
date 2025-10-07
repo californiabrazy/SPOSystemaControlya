@@ -89,6 +89,19 @@ export default function Sidebar({ activeTab }: SidebarProps) {
       );
     }
 
+    if (role === "Руководитель") {
+      return tabs.filter(
+        (tab) =>
+          tab.id !== "admin_users" &&
+          tab.id !== "admin_projects" &&
+          tab.id !== "reports" &&
+          tab.id !== "defects_engineer" &&
+          tab.id !== "projects" &&
+          tab.id !== "defects_manager" &&
+          tab.id !== "defects_engineer"
+      );
+    }
+
     return tabs;
   })();
 
