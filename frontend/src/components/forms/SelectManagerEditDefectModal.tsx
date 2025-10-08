@@ -2,6 +2,14 @@
 
 import React, { useState, useEffect } from "react";
 
+type User = {
+  id: number;
+  first_name: string;
+  last_name: string;
+  middle_name?: string;
+  email: string;
+};
+
 type Defect = {
   id: number;
   title: string;
@@ -9,7 +17,8 @@ type Defect = {
   priority: string;
   status: string;
   projectId: number;
-  assignee?: string;
+  assignee_id?: number;
+  assignee?: User;
   project?: { id: number; name: string };
 };
 

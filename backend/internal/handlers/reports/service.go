@@ -15,5 +15,7 @@ func (h *ReportsHandler) RegisterRoutes(router *gin.Engine) {
 		router.GET("/export/:id/csv", h.ExportReportCSV)
 
 		report.POST("/add", utils.AuthMiddleware(), h.AddReport)
+		report.POST("/report/add/:id", utils.AuthMiddleware(), h.AssigneeReport)
+		report.POST("/approve/:id", utils.AuthMiddleware(), h.ReviewReport)
 	}
 }

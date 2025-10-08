@@ -2,18 +2,27 @@
 
 import { useEffect, useState } from "react";
 
+type User = {
+  id: number;
+  first_name: string;
+  last_name: string;
+  middle_name?: string;
+  email: string;
+};
+
 type Defect = {
   id: number;
   title: string;
   status: string;
-  assignee?: string;
+  assignee_id?: number;
+  assignee?: User;
 };
 
 type Props = {
   defect: Defect | null;
   isOpen: boolean;
   onClose: () => void;
-  onSave: (id: number, updated: { status?: string; assignee?: string }) => void;
+  onSave: (id: number, updated: { status?: string; assignee_id?: number }) => void;
 };
 
 const STATUS_OPTIONS = [
@@ -23,16 +32,41 @@ const STATUS_OPTIONS = [
   { value: "closed", label: "Закрыт" },
 ];
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL!;
+
 export default function DefectEditModal({ defect, isOpen, onClose, onSave }: Props) {
-  const [assignee, setAssignee] = useState(defect?.assignee || "");
+  const [assigneeId, setAssigneeId] = useState<number | undefined>(undefined);
   const [status, setStatus] = useState("");
+  const [assignees, setAssignees] = useState<User[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (isOpen) {
+      setLoading(true);
+      fetch(`${API_URL}/api/admin/available_assignees`, {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+        },
+      })
+        .then((res) => {
+          if (!res.ok) throw new Error("Ошибка загрузки исполнителей");
+          return res.json();
+        })
+        .then((data: User[]) => setAssignees(data))
+        .catch((err) => {
+          console.error(err);
+          alert("Не удалось загрузить список исполнителей");
+        })
+        .finally(() => setLoading(false));
+    }
+  }, [isOpen]);
 
   useEffect(() => {
     if (defect) {
-      setAssignee(defect.assignee || "");
-      // Устанавливаем статус в зависимости от текущего
+      setAssigneeId(defect.assignee_id);
       if (defect.status === "new") {
-        setStatus("in_progress"); // По умолчанию "В работе" для новых дефектов
+        setStatus("in_progress");
       } else {
         setStatus(defect.status);
       }
@@ -47,14 +81,12 @@ export default function DefectEditModal({ defect, isOpen, onClose, onSave }: Pro
   if (!isOpen || !defect) return null;
 
   const handleSave = () => {
-    // Проверка на обязательные поля
-    if (!assignee.trim() || !status) {
-      alert("Ошибка: Необходимо указать исполнителя и статус дефекта!");
+    if (!assigneeId || !status) {
+      alert("Ошибка: Необходимо выбрать исполнителя и статус дефекта!");
       return;
     }
 
-    // Если все в порядке, сохраняем
-    onSave(defect.id, { assignee, status });
+    onSave(defect.id, { assignee_id: assigneeId, status });
     onClose();
   };
 
@@ -76,13 +108,20 @@ export default function DefectEditModal({ defect, isOpen, onClose, onSave }: Pro
 
           <div>
             <p className="ml-1 mb-1">Исполнитель</p>
-            <input
-              type="text"
-              placeholder="Введите исполнителя"
-              value={assignee}
-              onChange={(e) => setAssignee(e.target.value)}
-              className="w-full rounded bg-[#F0F0F0] px-4 py-3 text-black placeholder-black outline-none focus:ring-2 focus:ring-[#99CDD8] border-none shadow-md"
-            />
+            <select
+              value={assigneeId ?? ""}
+              onChange={(e) => setAssigneeId(e.target.value ? Number(e.target.value) : undefined)}
+              className="w-full h-[48px] rounded bg-[#F0F0F0] px-4 py-3 text-black outline-none focus:ring-2 focus:ring-[#99CDD8] border-none shadow-md"
+              disabled={loading}
+            >
+              <option value="">Выберите исполнителя</option>
+              {assignees.map((user) => (
+                <option key={user.id} value={user.id}>
+                  {user.first_name} {user.last_name} {user.middle_name || ""}
+                </option>
+              ))}
+            </select>
+            {loading && <p className="text-sm text-gray-500 mt-1">Загрузка исполнителей...</p>}
           </div>
 
           <div className="col-span-2">
@@ -92,11 +131,9 @@ export default function DefectEditModal({ defect, isOpen, onClose, onSave }: Pro
               onChange={(e) => setStatus(e.target.value)}
               className="w-full h-[48px] rounded bg-[#F0F0F0] px-4 py-3 text-black outline-none focus:ring-2 focus:ring-[#99CDD8] border-none shadow-md"
             >
-              {/* Псевдо-плейсхолдер */}
               <option value="" disabled>
                 Выбрать
               </option>
-
               {STATUS_OPTIONS.filter((s) => {
                 if (defect.status === "new") return s.value === "in_progress";
                 if (defect.status === "in_progress") return s.value !== "new";
@@ -110,13 +147,13 @@ export default function DefectEditModal({ defect, isOpen, onClose, onSave }: Pro
               ))}
             </select>
           </div>
-
         </div>
 
         <div className="flex justify-center gap-2 mt-2">
           <button
             className="px-6 py-2 rounded bg-[#8BBCC6] hover:bg-[#99CDD8] text-white disabled:opacity-50"
             onClick={handleSave}
+            disabled={loading}
           >
             Сохранить
           </button>

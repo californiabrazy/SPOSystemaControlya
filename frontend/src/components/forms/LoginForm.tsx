@@ -51,7 +51,10 @@ export default function LoginForm() {
       const decoded = jwtDecode<JwtPayload>(data.access_token);
       if (decoded.role === "Админ") {
         router.push("/admin/users");
-      } else {
+      } else if (decoded.role === "Инженер") {
+        router.push("/defects/engineer")
+      }
+      else {
         router.push("/");
       }
     } catch (_err: unknown) {

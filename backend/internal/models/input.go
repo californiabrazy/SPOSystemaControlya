@@ -36,8 +36,8 @@ type EngineerEditDefectInput struct {
 }
 
 type ManagerEditDefectInput struct {
-	Status   string `gorm:"type:varchar(20);not null;check:status IN ('new','in_progress','resolved','closed','reopened')" json:"status"`
-	Assignee string `gorm:"type:varchar(30)" json:"assignee"`
+	AssigneeID *uint  `json:"assignee_id"`
+	Status     string `json:"status"`
 }
 
 type DefectAttachment struct {

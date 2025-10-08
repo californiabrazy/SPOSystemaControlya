@@ -103,6 +103,28 @@ func (h *AdminHandler) AvaliableManagers(c *gin.Context) {
 	c.JSON(http.StatusOK, availableManagers)
 }
 
+func (h *AdminHandler) AvaliableAssignees(c *gin.Context) {
+	var assigneeRole models.Role
+	if err := h.db.Where("name = ?", "Исполнитель").First(&assigneeRole).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Роль Исполнитель не найдена"})
+		return
+	}
+
+	_, exists := c.Get("userID")
+	if !exists {
+		c.JSON(http.StatusForbidden, gin.H{"error": "Недостаточно прав"})
+		return
+	}
+
+	var availableAssignees []models.User
+	if err := h.db.Where("role_id = ?", assigneeRole.ID).Find(&availableAssignees).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Не удалось получить список исполнителей"})
+		return
+	}
+
+	c.JSON(http.StatusOK, availableAssignees)
+}
+
 func (h *AdminHandler) DeleteUser(c *gin.Context) {
 	role, exists := c.Get("role")
 	if !exists || role != "Админ" {

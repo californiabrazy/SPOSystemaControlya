@@ -2,7 +2,8 @@ INSERT INTO roles (name) VALUES
 ('Админ'),
 ('Инженер'),
 ('Менеджер'),
-('Руководитель')
+('Руководитель'),
+('Исполнитель')
 ON CONFLICT (name) DO NOTHING;
 
 INSERT INTO users (first_name, last_name, middle_name, password, email, role_id) 

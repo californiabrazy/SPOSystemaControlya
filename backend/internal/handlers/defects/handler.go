@@ -84,6 +84,7 @@ func (h *DefectHandler) ManagerListDefects(c *gin.Context) {
 		Where("projects.manager_id = ?", managerID).
 		Preload("Project").
 		Preload("Author").
+		Preload("Assignee").
 		Find(&defects).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Не удалось получить дефекты"})
 		return
@@ -124,7 +125,7 @@ func (h *DefectHandler) EngineerEditDefect(c *gin.Context) {
 		return
 	}
 
-	if defect.Assignee != "" || defect.Status != "new" {
+	if defect.AssigneeID != nil || defect.Status != "new" {
 		c.JSON(http.StatusForbidden, gin.H{"error": "Нельзя редактировать дефект после назначения исполнителя"})
 		return
 	}
@@ -167,6 +168,17 @@ func (h *DefectHandler) EngineerEditDefect(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"defect": defect})
 }
 
+func (h *DefectHandler) AssigneeListDefects(c *gin.Context) {
+	userID, _ := c.Get("userID")
+	var defects []models.Defect
+	if err := h.db.Where("assignee_id = ? AND status = ?", userID, "in_progress").
+		Preload("Project").Preload("Author").Find(&defects).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Ошибка получения дефектов"})
+		return
+	}
+	c.JSON(http.StatusOK, defects)
+}
+
 func (h *DefectHandler) ManagerEditDefect(c *gin.Context) {
 	defectParamsID := c.Param("id")
 	defectID, err := strconv.Atoi(defectParamsID)
@@ -187,37 +199,54 @@ func (h *DefectHandler) ManagerEditDefect(c *gin.Context) {
 		return
 	}
 
-	if defect.Assignee == "" {
-		if input.Assignee != "" {
-			defect.Assignee = input.Assignee
+	userID, _ := c.Get("userID")
+	var project models.Project
+	if err := h.db.First(&project, defect.ProjectID).Error; err != nil || project.ManagerID != uint(userID.(float64)) {
+		c.JSON(http.StatusForbidden, gin.H{"error": "Недостаточно прав"})
+		return
+	}
+
+	if input.AssigneeID != nil {
+		var assignee models.User
+		if err := h.db.First(&assignee, *input.AssigneeID).Error; err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Исполнитель не найден"})
+			return
 		}
-	} else {
-		if input.Assignee != "" && input.Assignee != defect.Assignee {
-			c.JSON(http.StatusForbidden, gin.H{"error": "Нельзя изменить назначенного исполнителя"})
+		if assignee.RoleID != 5 {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Выбранный пользователь не является исполнителем"})
 			return
 		}
 	}
 
+	if defect.AssigneeID == nil {
+		defect.AssigneeID = input.AssigneeID
+	} else if input.AssigneeID != nil && *defect.AssigneeID != *input.AssigneeID {
+		c.JSON(http.StatusForbidden, gin.H{"error": "Нельзя изменить назначенного исполнителя"})
+		return
+	}
+
 	if input.Status != "" {
-		if defect.Status == "new" {
-			if input.Status != "in_progress" {
-				c.JSON(http.StatusBadRequest, gin.H{"error": "Из статуса 'new' можно перейти только в 'in_progress'"})
-				return
-			}
-		} else {
-			if input.Status == "new" {
-				c.JSON(http.StatusBadRequest, gin.H{"error": "Нельзя возвращать дефект в статус 'new'"})
-				return
-			}
+		if defect.Status == "new" && input.Status != "in_progress" {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Из статуса 'new' можно перейти только в 'in_progress'"})
+			return
+		}
+		if input.Status == "new" {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Нельзя возвращать дефект в статус 'new'"})
+			return
 		}
 		defect.Status = input.Status
 	}
 
+	if input.AssigneeID != nil && defect.Status == "new" {
+		defect.Status = "in_progress"
+	}
+
 	if err := h.db.Save(&defect).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Не удалось обновить дефект"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Не удалось назначить исполнителя"})
 		return
 	}
 
+	h.db.Preload("Assignee").First(&defect, defectID)
 	c.JSON(http.StatusOK, gin.H{"defect": defect})
 }
 

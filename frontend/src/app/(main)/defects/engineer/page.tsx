@@ -195,7 +195,7 @@ export default function Defects() {
             <select
               value={filters.priority}
               onChange={(e) => handleFilterChange("priority", e.target.value)}
-              className="w-[150px] h-[40px] rounded bg-white px-2 py-1 text-sm text-black outline-none focus:ring-2 focus:ring-[#99CDD8] border-none shadow-md"
+              className="w-[150px] h-[40px] rounded bg-white px-2 py-1 text-black outline-none focus:ring-2 focus:ring-[#99CDD8] border-none shadow-md"
             >
               <option value="">Все приоритеты</option>
               {Object.entries(PRIORITY_LABELS).map(([value, label]) => (
@@ -207,7 +207,7 @@ export default function Defects() {
             <select
               value={filters.status}
               onChange={(e) => handleFilterChange("status", e.target.value)}
-              className="w-[150px] h-[40px] rounded bg-white px-2 py-1 text-sm text-black outline-none focus:ring-2 focus:ring-[#99CDD8] border-none shadow-md"
+              className="w-[150px] h-[40px] rounded bg-white px-2 py-1 text-black outline-none focus:ring-2 focus:ring-[#99CDD8] border-none shadow-md"
             >
               <option value="">Все статусы</option>
               {Object.entries(STATUS_LABELS).map(([value, label]) => (

@@ -32,7 +32,7 @@ CREATE TABLE IF NOT EXISTS defects (
     project_id INTEGER NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
     author_id INTEGER NOT NULL REFERENCES users(id) ON DELETE SET NULL,
     attachments JSONB NOT NULL DEFAULT '[]'::jsonb,
-    assignee VARCHAR(30)
+    assignee_id INTEGER NOT NULL REFERENCES users(id) ON DELETE SET NULL
 );
 
 CREATE TABLE IF NOT EXISTS reports (

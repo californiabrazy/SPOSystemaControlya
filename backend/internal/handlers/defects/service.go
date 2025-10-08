@@ -12,6 +12,7 @@ func (h *DefectHandler) RegisterRoutes(router *gin.Engine) {
 		defect.GET("/yours", utils.AuthMiddleware(), h.UserListDefects)
 		defect.GET("/yours/manager", utils.AuthMiddleware(), h.ManagerListDefects)
 		defect.GET("/download/:filename", h.AttachmentsDownload)
+		defect.GET("/yours/assignee", utils.AuthMiddleware(), h.AssigneeListDefects)
 
 		defect.POST("/add", utils.AuthMiddleware(), h.AddDefect)
 

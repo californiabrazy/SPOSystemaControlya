@@ -7,6 +7,14 @@ import { useRoleGuard } from "@/hooks/useRoleGuard";
 import DefectEditModal from "@/components/forms/ManagerEditDefectModal";
 import SelectDefectModal from "@/components/forms/SelectManagerEditDefectModal";
 
+type User = {
+  id: number;
+  first_name: string;
+  last_name: string;
+  middle_name?: string;
+  email: string;
+};
+
 type Defect = {
   id: number;
   title: string;
@@ -14,7 +22,8 @@ type Defect = {
   priority: string;
   status: string;
   projectId: number;
-  assignee?: string;
+  assignee_id?: number;
+  assignee?: User;
   project?: { id: number; name: string };
 };
 
@@ -81,7 +90,6 @@ export default function ManagerDefects() {
   useEffect(() => {
     let result = [...defects];
 
-    // Применение фильтров
     if (filters.priority) {
       result = result.filter((defect) => defect.priority === filters.priority);
     }
@@ -93,7 +101,7 @@ export default function ManagerDefects() {
   }, [defects, filters]);
 
   const handleEditDefect = useCallback(
-    async (id: number, updatedFields: { assignee?: string; status?: string }) => {
+    async (id: number, updatedFields: { assignee_id?: number; status?: string }) => {
       try {
         const res = await fetch(`${API_URL}/api/defects/edit/bymanager/${id}`, {
           method: "PUT",
@@ -137,7 +145,7 @@ export default function ManagerDefects() {
             <select
               value={filters.priority}
               onChange={(e) => handleFilterChange("priority", e.target.value)}
-              className="w-[150px] h-[40px] rounded bg-white px-2 py-1 text-sm text-black outline-none focus:ring-2 focus:ring-[#99CDD8] border-none shadow-md"
+              className="w-[150px] h-[40px] rounded bg-white px-2 py-1 text-black outline-none focus:ring-2 focus:ring-[#99CDD8] border-none shadow-md"
             >
               <option value="">Все приоритеты</option>
               {Object.entries(PRIORITY_LABELS).map(([value, label]) => (
@@ -149,7 +157,7 @@ export default function ManagerDefects() {
             <select
               value={filters.status}
               onChange={(e) => handleFilterChange("status", e.target.value)}
-              className="w-[150px] h-[40px] rounded bg-white px-2 py-1 text-sm text-black outline-none focus:ring-2 focus:ring-[#99CDD8] border-none shadow-md"
+              className="w-[150px] h-[40px] rounded bg-white px-2 py-1 text-black outline-none focus:ring-2 focus:ring-[#99CDD8] border-none shadow-md"
             >
               <option value="">Все статусы</option>
               {Object.entries(STATUS_LABELS).map(([value, label]) => (
@@ -164,7 +172,7 @@ export default function ManagerDefects() {
           className="bg-[#4A5678] text-white px-4 py-2 rounded-md hover:bg-[#37415C] transition-colors"
           onClick={() => setShowSelectModal(true)}
         >
-          Редактировать
+          Назначить исполнителя
         </button>
       </div>
 
@@ -177,11 +185,9 @@ export default function ManagerDefects() {
               key={defect.id}
               className="bg-white rounded-lg shadow-md border border-gray-200 p-4 flex flex-col gap-3 transition hover:shadow-lg w-full max-w-[300px] mx-auto"
             >
-              {/* Верхняя часть: название и описание */}
               <div className="flex-1">
                 <h3 className="font-bold text-lg text-gray-900 line-clamp-2 mb-2">{defect.title}</h3>
 
-                {/* Приоритет и статус */}
                 <div className="flex flex-col gap-2">
                   <span
                     className={`inline-block px-2 py-1 text-xs font-medium rounded ${
@@ -212,11 +218,10 @@ export default function ManagerDefects() {
                 </div>
               </div>
 
-              {/* Нижняя часть: исполнитель и проект */}
               <div className="text-[#657166] space-y-1 text-sm">
                 <p>
                   <span className="font-medium text-black">Исполнитель:</span>{" "}
-                  {defect.assignee || "не назначен"}
+                  {defect.assignee ? `${defect.assignee.first_name} ${defect.assignee.last_name}` : "не назначен"}
                 </p>
               </div>
             </div>
@@ -224,7 +229,6 @@ export default function ManagerDefects() {
         </div>
       )}
 
-      {/* Модалка выбора дефекта */}
       <SelectDefectModal
         defects={defects}
         isOpen={showSelectModal}
@@ -235,7 +239,6 @@ export default function ManagerDefects() {
         }}
       />
 
-      {/* Модалка редактирования выбранного дефекта */}
       <DefectEditModal
         defect={selectedDefect}
         isOpen={!!selectedDefect}
