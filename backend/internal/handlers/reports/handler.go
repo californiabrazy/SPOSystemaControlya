@@ -93,7 +93,7 @@ func (h *ReportsHandler) AddReport(c *gin.Context) {
 	})
 }
 
-func (h *ReportsHandler) DownloadReportFile(c *gin.Context) {
+func (h *ReportsHandler) ReportFileDownload(c *gin.Context) {
 	filename := c.Param("filename")
 
 	filePath := filepath.Join("uploads", "reports", filename)
@@ -171,7 +171,7 @@ func (h *ReportsHandler) ExportReportCSV(c *gin.Context) {
 	c.Data(http.StatusOK, "text/csv; charset=utf-8", b.Bytes())
 }
 
-func (h *ReportsHandler) AssigneeReport(c *gin.Context) {
+func (h *ReportsHandler) AssigneeAddReport(c *gin.Context) {
 	defectID, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Неверный ID дефекта"})
@@ -259,27 +259,35 @@ func (h *ReportsHandler) AssigneeReport(c *gin.Context) {
 }
 
 func (h *ReportsHandler) ReviewReport(c *gin.Context) {
-	defectID, err := strconv.Atoi(c.Param("id"))
+	reportID, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Неверный ID дефекта"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Неверный ID отчета"})
+		return
+	}
+
+	var report models.Report
+	if err := h.db.First(&report, reportID).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Отчёт не найден"})
 		return
 	}
 
 	userID, _ := c.Get("userID")
+	managerID := uint(userID.(float64))
+
 	var defect models.Defect
-	if err := h.db.First(&defect, defectID).Error; err != nil {
+	if err := h.db.First(&defect, report.DefectID).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Дефект не найден"})
 		return
 	}
 
 	var project models.Project
-	if err := h.db.First(&project, defect.ProjectID).Error; err != nil || project.ManagerID != uint(userID.(float64)) {
+	if err := h.db.First(&project, defect.ProjectID).Error; err != nil || project.ManagerID != managerID {
 		c.JSON(http.StatusForbidden, gin.H{"error": "Недостаточно прав"})
 		return
 	}
 
 	if defect.Status != "in_progress" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Дефект должен быть в статусе 'on_progress'"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Дефект должен быть в статусе 'in_progress'"})
 		return
 	}
 
@@ -291,13 +299,8 @@ func (h *ReportsHandler) ReviewReport(c *gin.Context) {
 		return
 	}
 
-	var report models.Report
-	if err := h.db.Where("defect_id = ? AND status = ?", defectID, "pending").First(&report).Error; err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "Отчёт не найден"})
-		return
-	}
-
 	report.Status = input.Decision
+
 	if input.Decision == "reject" {
 		defect.Status = "in_progress"
 	} else {
@@ -315,4 +318,21 @@ func (h *ReportsHandler) ReviewReport(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"report": report, "defect": defect})
+}
+
+func (h *ReportsHandler) ManagerPendingReports(c *gin.Context) {
+	userID, exists := c.Get("userID")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Не авторизован"})
+		return
+	}
+
+	var reports []models.Report
+	if err := h.db.Where("status = ? AND project_id IN (SELECT id FROM projects WHERE manager_id = ?)", "pending", userID).
+		Preload("Defect").Preload("Project").Preload("User").Find(&reports).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Ошибка получения отчётов"})
+		return
+	}
+
+	c.JSON(http.StatusOK, reports)
 }

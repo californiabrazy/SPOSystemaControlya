@@ -93,7 +93,7 @@ export default function DefectEditModal({ defect, isOpen, onClose, onSave }: Pro
   return (
     <div className="fixed inset-0 bg-[rgba(0,0,0,0.5)] flex items-center justify-center z-50">
       <div className="bg-white p-6 rounded-lg w-[700px] shadow-lg space-y-4">
-        <h3 className="text-xl font-semibold text-black mb-4">Редактировать дефект</h3>
+        <h3 className="text-xl font-semibold text-black mb-4">Назначить исполнителя</h3>
 
         <div className="grid grid-cols-2 gap-4">
           <div>
@@ -124,29 +124,7 @@ export default function DefectEditModal({ defect, isOpen, onClose, onSave }: Pro
             {loading && <p className="text-sm text-gray-500 mt-1">Загрузка исполнителей...</p>}
           </div>
 
-          <div className="col-span-2">
-            <p className="ml-1 mb-1">Статус</p>
-            <select
-              value={status}
-              onChange={(e) => setStatus(e.target.value)}
-              className="w-full h-[48px] rounded bg-[#F0F0F0] px-4 py-3 text-black outline-none focus:ring-2 focus:ring-[#99CDD8] border-none shadow-md"
-            >
-              <option value="" disabled>
-                Выбрать
-              </option>
-              {STATUS_OPTIONS.filter((s) => {
-                if (defect.status === "new") return s.value === "in_progress";
-                if (defect.status === "in_progress") return s.value !== "new";
-                if (defect.status === "resolved") return s.value !== "new";
-                if (defect.status === "closed") return s.value !== "new";
-                return true;
-              }).map((s) => (
-                <option key={s.value} value={s.value}>
-                  {s.label}
-                </option>
-              ))}
-            </select>
-          </div>
+          
         </div>
 
         <div className="flex justify-center gap-2 mt-2">

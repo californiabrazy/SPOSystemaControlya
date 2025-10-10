@@ -48,7 +48,7 @@ export default function DashboardPage() {
 
         if (role === "Менеджер") {
           // Получаем отчёты менеджера
-          const reportsResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/reports/your`, {
+          const reportsResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/reports/yours/manager`, {
             headers: {
               "Content-Type": "application/json",
               Authorization: `Bearer ${localStorage.getItem("access_token")}`,
@@ -134,16 +134,22 @@ export default function DashboardPage() {
 
           {showReportsList && (
             <div className="mt-2 max-h-64 overflow-y-auto rounded p-2 bg-white shadow-sm">
-              {reports.map((r) => (
-                <div
-                  key={r.id}
-                  className="cursor-pointer py-2 hover:bg-gray-50"
-                  onClick={() => setSelectedReport(r)}
-                >
-                  <p className="font-medium text-black">{r.title}</p>
-                  <p className="text-gray-500 text-sm">{new Date(r.created_at).toLocaleString()}</p>
+              {reports.length > 0 ? (
+                reports.map((r) => (
+                  <div
+                    key={r.id}
+                    className="cursor-pointer py-2 hover:bg-gray-50"
+                    onClick={() => setSelectedReport(r)}
+                  >
+                    <p className="font-medium text-black">{r.title}</p>
+                    <p className="text-gray-500 text-sm">{new Date(r.created_at).toLocaleString()}</p>
+                  </div>
+                ))
+              ) : (
+                <div className="text-center text-gray-500">
+                  Отчеты отсутствуют
                 </div>
-              ))}
+              )}
             </div>
           )}
         </div>

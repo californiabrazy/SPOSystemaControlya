@@ -53,8 +53,9 @@ export default function LoginForm() {
         router.push("/admin/users");
       } else if (decoded.role === "Инженер") {
         router.push("/defects/engineer")
-      }
-      else {
+      } else if (decoded.role === "Исполнитель") {
+        router.push("/reports/assignee")
+      } else {
         router.push("/");
       }
     } catch (_err: unknown) {

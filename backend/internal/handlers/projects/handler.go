@@ -33,7 +33,7 @@ func (h *ProjectsHandler) ManagerListProjects(c *gin.Context) {
 			p.description,
 			COUNT(d.id) AS defects_count,
 			COUNT(DISTINCT d.author_id) AS engineers_count,
-			COUNT(DISTINCT NULLIF(d.assignee, '')) AS assignees_count
+			COUNT(DISTINCT d.assignee_id) AS assignees_count
 		FROM projects p
 		LEFT JOIN defects d ON d.project_id = p.id
 		WHERE p.manager_id = ?

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 
 type Defect = {
   id: number;
@@ -9,17 +9,15 @@ type Defect = {
   priority: string;
   status: string;
   projectId: number;
-  authorId: number;
-  createdAt: string;
-  updatedAt: string;
-  author?: { id: number; first_name: string; last_name: string; middle_name: string };
+  assignee_id?: number;
+  assignee?: { id: number; first_name: string; last_name: string };
   project?: { id: number; name: string };
 };
 
-interface SelectDefectModalProps {
+interface SelectDefectForReportModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSelect: (defectId: number) => void;
+  onSelect: (defectId: number) => void; // Updated to accept defectId
   defects: Defect[];
 }
 
@@ -37,7 +35,12 @@ const STATUS_LABELS: Record<string, string> = {
   closed: "Закрыт",
 };
 
-export default function SelectDefectModal({ isOpen, onClose, onSelect, defects }: SelectDefectModalProps) {
+export default function SelectDefectForReportModal({
+  isOpen,
+  onClose,
+  onSelect,
+  defects,
+}: SelectDefectForReportModalProps) {
   const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
@@ -49,17 +52,15 @@ export default function SelectDefectModal({ isOpen, onClose, onSelect, defects }
 
   if (!isOpen) return null;
 
-  const filteredDefects = defects
-    .filter((defect) => defect.status === "new")
-    .filter((defect) =>
-      defect.title.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+  const filteredDefects = defects.filter((defect) =>
+    defect.title.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   return (
     <div className="fixed inset-0 bg-[rgba(0,0,0,0.5)] flex items-center justify-center z-50">
-      <div className="bg-white p-6 rounded-lg w-[700px] shadow-lg space-y-4">
+      <div className="bg-white p-6 rounded w-[700px] shadow-lg space-y-4">
         <h3 className="text-xl font-semibold text-black mb-4">
-          Выберите дефект для редактирования
+          Выберите дефект для создания отчёта
         </h3>
 
         {/* Поле поиска */}
@@ -71,15 +72,20 @@ export default function SelectDefectModal({ isOpen, onClose, onSelect, defects }
           className="w-full rounded bg-[#F0F0F0] px-4 py-3 text-black placeholder-gray-500 outline-none focus:ring-2 focus:ring-[#99CDD8] border-none shadow-md"
         />
 
-        {/* Список дефектов с прокруткой */}
-        <div className="max-h-64 overflow-y-auto mt-2">
+        {/* Список дефектов */}
+        <div className="max-h-64 overflow-y-auto space-y-2">
           {filteredDefects.length === 0 ? (
-            <p className="text-gray-500 text-center">Нет дефектов, соответствующих поиску</p>
+            <p className="text-[#657166] text-center">
+              Нет дефектов, соответствующих поиску
+            </p>
           ) : (
             filteredDefects.map((defect) => (
               <div
                 key={defect.id}
-                onClick={() => { onSelect(defect.id); onClose(); }}
+                onClick={() => {
+                  onSelect(defect.id); // Pass defect ID
+                  onClose();
+                }}
                 className="p-3 hover:bg-[#F0F0F0] cursor-pointer transition rounded"
               >
                 <div className="flex flex-col sm:flex-row sm:items-center sm:gap-2 flex-wrap">
@@ -95,7 +101,7 @@ export default function SelectDefectModal({ isOpen, onClose, onSelect, defects }
                         : "bg-[#F3E0B2]"
                     } text-black`}
                   >
-                    Приоритет: {PRIORITY_LABELS[defect.priority] || defect.priority}
+                    Приоритет: {PRIORITY_LABELS[defect.priority]}
                   </span>
                   <span
                     className={`px-3 py-1 text-sm font-medium rounded ${
@@ -105,12 +111,10 @@ export default function SelectDefectModal({ isOpen, onClose, onSelect, defects }
                         ? "bg-[#E5D6FF]"
                         : defect.status === "resolved"
                         ? "bg-[#D1FCD8]"
-                        : defect.status === "closed"
-                        ? "bg-[#F3F4F6]"
-                        : "bg-[#FEF3C7]"
+                        : "bg-[#F3F4F6]"
                     } text-black`}
                   >
-                    Статус: {STATUS_LABELS[defect.status] || defect.status}
+                    Статус: {STATUS_LABELS[defect.status]}
                   </span>
                 </div>
               </div>

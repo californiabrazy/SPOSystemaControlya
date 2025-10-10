@@ -35,11 +35,6 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-[#F0F9FA] p-6">
-      <div className="flex items-center mb-3 gap-2">
-        <div className="text-center flex justify-center p-1 font-bold mt-1 text-2xl font-bold text-[#8A9D67] border rounded border-3 cursor-pointer">
-          СистемаКонтроля
-        </div>
-      </div>
       <div className="w-full max-w-md rounded-xl bg-white p-8 shadow-md">
         <h1 className="mb-2 text-3xl font-bold text-[#657166] text-center">
           Вход

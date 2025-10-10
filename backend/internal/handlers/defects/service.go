@@ -9,14 +9,14 @@ import (
 func (h *DefectHandler) RegisterRoutes(router *gin.Engine) {
 	defect := router.Group("api/defects")
 	{
-		defect.GET("/yours", utils.AuthMiddleware(), h.UserListDefects)
+		defect.GET("/yours/engineer", utils.AuthMiddleware(), h.EngineerListDefects)
 		defect.GET("/yours/manager", utils.AuthMiddleware(), h.ManagerListDefects)
-		defect.GET("/download/:filename", h.AttachmentsDownload)
 		defect.GET("/yours/assignee", utils.AuthMiddleware(), h.AssigneeListDefects)
+		defect.GET("/download/:filename", h.AttachmentsDownload)
 
 		defect.POST("/add", utils.AuthMiddleware(), h.AddDefect)
 
-		defect.PUT("/edit/byengineer/:id", utils.AuthMiddleware(), h.EngineerEditDefect)
-		defect.PUT("/edit/bymanager/:id", utils.AuthMiddleware(), h.ManagerEditDefect)
+		defect.PUT("/edit/engineer/:id", utils.AuthMiddleware(), h.EngineerEditDefect)
+		defect.PUT("/edit/manager/:id", utils.AuthMiddleware(), h.ManagerEditDefect)
 	}
 }

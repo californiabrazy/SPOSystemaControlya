@@ -8,7 +8,7 @@ type Report struct {
 	FilePaths   []string  `gorm:"type:jsonb;serializer:json" json:"attachments"`
 	Description string    `json:"description" gorm:"type:text"`
 	CreatedAt   time.Time `json:"created_at" gorm:"autoCreateTime"`
-	Status      string    `json:"status" gorm:"type:varchar(20);not null;check:status IN ('pending','approved','rejected');default:pending"`
+	Status      string    `json:"status" gorm:"type:varchar(20);not null;check:status IN ('pending','approve','reject');default:pending"`
 
 	ProjectID uint    `json:"project_id" gorm:"not null"`
 	Project   Project `gorm:"foreignKey:ProjectID;constraint:OnDelete:CASCADE" json:"project"`

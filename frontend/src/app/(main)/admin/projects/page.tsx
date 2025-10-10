@@ -71,7 +71,7 @@ export default function ProjectsPage() {
       if (!accessToken) return;
 
       try {
-        const res = await fetch(`${API_URL}/api/admin/projects`, {
+        const res = await fetch(`${API_URL}/api/admin/add/project`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -102,7 +102,7 @@ export default function ProjectsPage() {
       if (!accessToken) return;
 
       try {
-        const res = await fetch(`${API_URL}/api/admin/delete_project`, {
+        const res = await fetch(`${API_URL}/api/admin/delete/project`, {
           method: "DELETE",
           headers: {
             "Content-Type": "application/json",

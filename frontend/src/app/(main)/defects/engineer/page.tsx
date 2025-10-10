@@ -55,7 +55,7 @@ export default function Defects() {
         }
 
         // Fetch defects
-        const defectsResponse = await fetch(`${API_URL}/api/defects/yours`, {
+        const defectsResponse = await fetch(`${API_URL}/api/defects/yours/engineer`, {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
@@ -151,7 +151,7 @@ export default function Defects() {
   const handleEditDefect = useCallback(
     async (id: number, formData: FormData) => {
       try {
-        const response = await fetch(`${API_URL}/api/defects/edit/byengineer/${id}`, {
+        const response = await fetch(`${API_URL}/api/defects/edit/engineer/${id}`, {
           method: "PUT",
           headers: {
             Authorization: `Bearer ${localStorage.getItem("access_token")}`,

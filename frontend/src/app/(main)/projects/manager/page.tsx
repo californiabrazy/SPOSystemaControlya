@@ -22,7 +22,7 @@ export default function ManagerProject() {
       }
 
       try {
-        const res = await fetch(`${API_URL}/api/projects/your`, {
+        const res = await fetch(`${API_URL}/api/projects/yours/manager`, {
           headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${localStorage.getItem("access_token")}`,

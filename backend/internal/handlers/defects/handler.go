@@ -93,7 +93,7 @@ func (h *DefectHandler) ManagerListDefects(c *gin.Context) {
 	c.JSON(http.StatusOK, defects)
 }
 
-func (h *DefectHandler) UserListDefects(c *gin.Context) {
+func (h *DefectHandler) EngineerListDefects(c *gin.Context) {
 	var defects []models.Defect
 
 	userID, exists := c.Get("userID")

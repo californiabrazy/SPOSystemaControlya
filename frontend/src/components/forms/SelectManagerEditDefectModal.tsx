@@ -55,14 +55,16 @@ export default function SelectDefectModal({ defects, isOpen, onClose, onSelect }
 
   if (!isOpen) return null;
 
-  const filteredDefects = defects.filter((defect) =>
-    defect.title.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredDefects = defects.filter(
+    (defect) =>
+      defect.title.toLowerCase().includes(searchTerm.toLowerCase()) &&
+      defect.status === "new"
   );
 
   return (
     <div className="fixed inset-0 bg-[rgba(0,0,0,0.5)] flex items-center justify-center z-50">
-      <div className="bg-white p-6 rounded-lg w-[700px] shadow-lg space-y-4">
-        <h3 className="text-xl font-semibold text-black mb-4">Выберите дефект для редактирования</h3>
+      <div className="bg-white p-6 rounded w-[700px] shadow-lg space-y-4">
+        <h3 className="text-xl font-semibold text-black mb-4">Выберите дефект для назначения исполнителя</h3>
 
         {/* Поле поиска */}
         <input

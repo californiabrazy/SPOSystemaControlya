@@ -51,9 +51,10 @@ export default function Sidebar({ activeTab }: SidebarProps) {
     { id: "projects", label: "Проект", icon: <Folder size={20} />, href: "/projects/manager" },
     { id: "defects_engineer", label: "Дефекты", icon: <AlertTriangle size={20} />, href: "/defects/engineer" },
     { id: "defects_manager", label: "Дефекты", icon: <AlertTriangle size={20} />, href: "/defects/manager" },
-    { id: "defects_assignee", label: "Дефекты", icon: <AlertTriangle size={20} />, href: "/defects/assignee" },
     { id: "admin_users", label: "Пользователи", icon: <Users size={20} />, href: "/admin/users" },
     { id: "admin_projects", label: "Проекты", icon: <FolderKanban size={20} />, href: "/admin/projects" },
+    { id: "reports_assignee", label: "Отчёты", icon: <AlertTriangle size={20} />, href: "/reports/assignee" },
+    { id: "reports_manager", label: "Отчёты", icon: <AlertTriangle size={20} />, href: "/reports/manager" },
   ];
 
   const visibleTabs = (() => {
@@ -64,7 +65,8 @@ export default function Sidebar({ activeTab }: SidebarProps) {
           tab.id !== "defects_engineer" &&
           tab.id !== "defects_manager" &&
           tab.id !== "dashboard" &&
-          tab.id !== "defects_assignee"
+          tab.id !== "reports_assignee" &&
+          tab.id !== "reports_manager"
       );
     }
 
@@ -76,7 +78,8 @@ export default function Sidebar({ activeTab }: SidebarProps) {
           tab.id !== "defects_manager" &&
           tab.id !== "projects" &&
           tab.id !== "dashboard" &&
-          tab.id !== "defects_assignee"
+          tab.id !== "reports_assignee" &&
+          tab.id !== "reports_manager"
       );
     }
 
@@ -86,7 +89,7 @@ export default function Sidebar({ activeTab }: SidebarProps) {
           tab.id !== "admin_users" &&
           tab.id !== "admin_projects" &&
           tab.id !== "defects_engineer" &&
-          tab.id !== "defects_assignee"
+          tab.id !== "reports_assignee"
       );
     }
 
@@ -99,7 +102,8 @@ export default function Sidebar({ activeTab }: SidebarProps) {
           tab.id !== "projects" &&
           tab.id !== "defects_manager" &&
           tab.id !== "defects_engineer" &&
-          tab.id !== "efects_assignee"
+          tab.id !== "reports_assignee" &&
+          tab.id !== "reports_manager"
       );
     }
 
@@ -110,7 +114,9 @@ export default function Sidebar({ activeTab }: SidebarProps) {
           tab.id !== "admin_projects" &&
           tab.id !== "defects_engineer" &&
           tab.id !== "projects" &&
-          tab.id !== "defects_manager"
+          tab.id !== "defects_manager" &&
+          tab.id !== "reports_manager" &&
+          tab.id !== "dashboard"
       );
     }
 

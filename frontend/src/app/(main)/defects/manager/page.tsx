@@ -103,7 +103,7 @@ export default function ManagerDefects() {
   const handleEditDefect = useCallback(
     async (id: number, updatedFields: { assignee_id?: number; status?: string }) => {
       try {
-        const res = await fetch(`${API_URL}/api/defects/edit/bymanager/${id}`, {
+        const res = await fetch(`${API_URL}/api/defects/edit/manager/${id}`, {
           method: "PUT",
           headers: {
             "Content-Type": "application/json",

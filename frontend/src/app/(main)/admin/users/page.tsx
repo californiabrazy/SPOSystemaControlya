@@ -98,7 +98,7 @@ export default function UsersPage() {
         const accessToken = localStorage.getItem("access_token");
         if (!accessToken) return;
 
-        const res = await fetch(`${API_URL}/api/admin/users`, {
+        const res = await fetch(`${API_URL}/api/admin/add/user`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -129,7 +129,7 @@ export default function UsersPage() {
         const accessToken = localStorage.getItem("access_token");
         if (!accessToken) return;
 
-        const res = await fetch(`${API_URL}/api/admin/delete_user`, {
+        const res = await fetch(`${API_URL}/api/admin/delete/user`, {
           method: "DELETE",
           headers: {
             "Content-Type": "application/json",
