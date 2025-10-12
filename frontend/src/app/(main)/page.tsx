@@ -1,12 +1,9 @@
 "use client";
 
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useToken } from "@/hooks/useToken";
 import { useRoleGuard } from "@/hooks/useRoleGuard";
-import AddReportModal from "@/components/forms/AddReportModal";
-import ReportDetailsModal from "@/components/forms/ReportDetailsModal";
-import LeaderReportDetailsModal from "@/components/forms/ReportDetailsModalLeader";
 import { FaChevronDown, FaChevronUp } from "react-icons/fa";
 
 type Report = {
@@ -26,9 +23,7 @@ export default function DashboardPage() {
 
   const [firstName, setFirstName] = useState<string | null>(null);
   const [reports, setReports] = useState<Report[]>([]);
-  const [showAddModal, setShowAddModal] = useState(false);
   const [showReportsList, setShowReportsList] = useState(true);
-  const [selectedReport, setSelectedReport] = useState<Report | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -47,29 +42,27 @@ export default function DashboardPage() {
         }
 
         if (role === "Менеджер") {
-          // Получаем отчёты менеджера
-          const reportsResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/reports/yours/manager`, {
+          const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/reports/yours/manager`, {
             headers: {
               "Content-Type": "application/json",
               Authorization: `Bearer ${localStorage.getItem("access_token")}`,
             },
           });
-          if (!reportsResponse.ok) throw new Error("Ошибка при загрузке отчетов");
-          const reportsData = await reportsResponse.json();
-          setReports(reportsData.reports || reportsData);
+          if (!res.ok) throw new Error("Ошибка при загрузке отчетов");
+          const data = await res.json();
+          setReports(data.reports || data);
         }
 
         if (role === "Руководитель") {
-          // Получаем все отчёты
-          const reportsResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/reports/all`, {
+          const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/reports/all`, {
             headers: {
               "Content-Type": "application/json",
               Authorization: `Bearer ${localStorage.getItem("access_token")}`,
             },
           });
-          if (!reportsResponse.ok) throw new Error("Ошибка при загрузке всех отчетов");
-          const reportsData = await reportsResponse.json();
-          setReports(reportsData.reports || reportsData);
+          if (!res.ok) throw new Error("Ошибка при загрузке всех отчетов");
+          const data = await res.json();
+          setReports(data.reports || data);
         }
       } catch (err) {
         console.error(err);
@@ -80,28 +73,6 @@ export default function DashboardPage() {
     };
     initialize();
   }, [checkToken, router, role]);
-
-  const handleAddReport = useCallback(async (formData: FormData) => {
-    try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/reports/add`, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("access_token")}`,
-        },
-        body: formData,
-      });
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Ошибка при добавлении отчета");
-      }
-      const newReport = await response.json();
-      setReports((prev) => [...prev, newReport.report]);
-      setShowAddModal(false);
-    } catch (error) {
-      console.error(error);
-      alert("Не удалось создать отчет");
-    }
-  }, []);
 
   if (roleLoading || loading) {
     return <div className="min-h-screen flex items-center justify-center">Загрузка...</div>;
@@ -114,21 +85,14 @@ export default function DashboardPage() {
           <h1 className="text-2xl font-bold text-gray-900">
             Добрый день{firstName ? `, ${firstName}` : ""}!
           </h1>
-          <button
-            className="bg-[#8BBCC6] text-white px-4 py-2 rounded hover:bg-[#99CDD8] transition-colors"
-            onClick={() => setShowAddModal(true)}
-          >
-            Создать отчет
-          </button>
         </div>
 
-        {/* Секция "Ваш список отчетов" */}
         <div className="w-1/2">
           <button
             className="text-black bg-white p-4 rounded-md shadow-sm w-full text-left flex justify-between items-center"
             onClick={() => setShowReportsList((prev) => !prev)}
           >
-            <span>Ваш список отчетов</span>
+            <span>Отчеты, которые нужно проверить:</span>
             {showReportsList ? <FaChevronUp /> : <FaChevronDown />}
           </button>
 
@@ -138,33 +102,28 @@ export default function DashboardPage() {
                 reports.map((r) => (
                   <div
                     key={r.id}
-                    className="cursor-pointer py-2 hover:bg-gray-50"
-                    onClick={() => setSelectedReport(r)}
+                    className="flex justify-between items-center py-2 px-2 rounded-md"
                   >
-                    <p className="font-medium text-black">{r.title}</p>
-                    <p className="text-gray-500 text-sm">{new Date(r.created_at).toLocaleString()}</p>
+                    <div>
+                      <p className="font-medium text-black">{r.title}</p>
+                      <p className="text-gray-500 text-sm">
+                        {new Date(r.created_at).toLocaleString()}
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => router.push("/reports/manager")}
+                      className="bg-[#4A5678] text-white px-4 py-1 rounded-md hover:bg-[#37415C]"
+                    >
+                      Проверить
+                    </button>
                   </div>
                 ))
               ) : (
-                <div className="text-center text-gray-500">
-                  Отчеты отсутствуют
-                </div>
+                <div className="text-center text-gray-500">Отчеты отсутствуют</div>
               )}
             </div>
           )}
         </div>
-
-        <AddReportModal
-          isOpen={showAddModal}
-          onClose={() => setShowAddModal(false)}
-          onSubmit={handleAddReport}
-        />
-
-        <ReportDetailsModal
-          isOpen={!!selectedReport}
-          onClose={() => setSelectedReport(null)}
-          report={selectedReport}
-        />
       </div>
     );
   }
@@ -178,7 +137,6 @@ export default function DashboardPage() {
           </h1>
         </div>
 
-        {/* Секция "Все отчеты" */}
         <div className="w-1/2">
           <button
             className="text-black bg-white p-4 rounded-md shadow-sm w-full text-left flex justify-between items-center"
@@ -193,22 +151,25 @@ export default function DashboardPage() {
               {reports.map((r) => (
                 <div
                   key={r.id}
-                  className="cursor-pointer py-2 hover:bg-gray-50"
-                  onClick={() => setSelectedReport(r)}
+                  className="flex justify-between items-center py-2 px-2 hover:bg-gray-50 rounded-md"
                 >
-                  <p className="font-medium text-black">{r.title}</p>
-                  <p className="text-gray-500 text-sm">{new Date(r.created_at).toLocaleString()}</p>
+                  <div>
+                    <p className="font-medium text-black">{r.title}</p>
+                    <p className="text-gray-500 text-sm">
+                      {new Date(r.created_at).toLocaleString()}
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => router.push("/reports/manager")}
+                    className="bg-blue-600 text-white px-4 py-1 rounded-md hover:bg-blue-700"
+                  >
+                    Проверить
+                  </button>
                 </div>
               ))}
             </div>
           )}
         </div>
-
-        <LeaderReportDetailsModal
-          isOpen={!!selectedReport}
-          onClose={() => setSelectedReport(null)}
-          report={selectedReport}
-        />
       </div>
     );
   }

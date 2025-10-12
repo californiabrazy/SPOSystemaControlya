@@ -38,7 +38,7 @@ export default function SelectReportModal({ isOpen, onClose, onSelect, reports }
 
   const filteredReports = reports.filter(
     (report) =>
-      report.status === "approve" &&
+      report.status === "pending" &&
       report.title.toLowerCase().includes(searchTerm.toLowerCase())
   );
 

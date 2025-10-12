@@ -53,7 +53,7 @@ export default function ManagerDefects() {
   const [selectedDefect, setSelectedDefect] = useState<Defect | null>(null);
   const [filters, setFilters] = useState({
     priority: "",
-    status: "",
+    status: "new",
   });
   const router = useRouter();
 

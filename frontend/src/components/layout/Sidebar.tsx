@@ -5,7 +5,7 @@ import {
   LayoutDashboard,
   Folder,
   AlertTriangle,
-  BarChart,
+  FileText,
   Users,
   LogOut,
   FolderKanban,
@@ -54,7 +54,8 @@ export default function Sidebar({ activeTab }: SidebarProps) {
     { id: "admin_users", label: "Пользователи", icon: <Users size={20} />, href: "/admin/users" },
     { id: "admin_projects", label: "Проекты", icon: <FolderKanban size={20} />, href: "/admin/projects" },
     { id: "reports_assignee", label: "Отчёты", icon: <AlertTriangle size={20} />, href: "/reports/assignee" },
-    { id: "reports_manager", label: "Отчёты", icon: <AlertTriangle size={20} />, href: "/reports/manager" },
+    { id: "reports_manager", label: "Отчёты", icon: <FileText size={20} />, href: "/reports/manager" },
+    { id: "reports_engineer", label: "Отчёты", icon: <FileText size={20} />, href: "/reports/engineer" },
   ];
 
   const visibleTabs = (() => {
@@ -66,7 +67,8 @@ export default function Sidebar({ activeTab }: SidebarProps) {
           tab.id !== "defects_manager" &&
           tab.id !== "dashboard" &&
           tab.id !== "reports_assignee" &&
-          tab.id !== "reports_manager"
+          tab.id !== "reports_manager" &&
+          tab.id !== "reports_engineer"
       );
     }
 
@@ -89,7 +91,8 @@ export default function Sidebar({ activeTab }: SidebarProps) {
           tab.id !== "admin_users" &&
           tab.id !== "admin_projects" &&
           tab.id !== "defects_engineer" &&
-          tab.id !== "reports_assignee"
+          tab.id !== "reports_assignee" &&
+          tab.id !== "reports_engineer"
       );
     }
 
@@ -103,7 +106,8 @@ export default function Sidebar({ activeTab }: SidebarProps) {
           tab.id !== "defects_manager" &&
           tab.id !== "defects_engineer" &&
           tab.id !== "reports_assignee" &&
-          tab.id !== "reports_manager"
+          tab.id !== "reports_manager" &&
+          tab.id !== "reports_engineer"
       );
     }
 
@@ -116,7 +120,8 @@ export default function Sidebar({ activeTab }: SidebarProps) {
           tab.id !== "projects" &&
           tab.id !== "defects_manager" &&
           tab.id !== "reports_manager" &&
-          tab.id !== "dashboard"
+          tab.id !== "dashboard" &&
+          tab.id !== "reports_engineer"
       );
     }
 

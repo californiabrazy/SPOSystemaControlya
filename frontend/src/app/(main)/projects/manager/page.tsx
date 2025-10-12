@@ -56,19 +56,19 @@ export default function ManagerProject() {
         {/* Количество дефектов */}
         <div className="bg-white rounded shadow-md border border-gray-200 p-4 flex flex-col gap-2 hover:shadow-lg transition">
           <h3 className="font-semibold text-gray-900 text-lg">Дефекты</h3>
-          <p className="text-[#657166] text-sm">{project.defects_count} дефект(ов)</p>
+          <p className="text-black text-sm">{project.defects_count} дефект(ов)</p>
         </div>
 
         {/* Количество инженеров */}
         <div className="bg-white rounded shadow-md border border-gray-200 p-4 flex flex-col gap-2 hover:shadow-lg transition">
           <h3 className="font-semibold text-gray-900 text-lg">Инженеры</h3>
-          <p className="text-[#657166] text-sm">{project.engineers_count} инженер(ов)</p>
+          <p className="text-black text-sm">{project.engineers_count} инженер(ов)</p>
         </div>
 
         {/* Количество исполнителей дефектов */}
         <div className="bg-white rounded shadow-md border border-gray-200 p-4 flex flex-col gap-2 hover:shadow-lg transition">
           <h3 className="font-semibold text-gray-900 text-lg">Исполнители</h3>
-          <p className="text-[#657166] text-sm">{project.assignees_count} работник(ов)</p>
+          <p className="text-black text-sm">{project.assignees_count} работник(ов)</p>
         </div>
       </div>
     </div>
