@@ -23,92 +23,13 @@ func NewReportsHandler(db *gorm.DB) *ReportsHandler {
 	return &ReportsHandler{db: db}
 }
 
-func (h *ReportsHandler) AddReport(c *gin.Context) {
-	userIDVal, exists := c.Get("userID")
-	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Не удалось определить пользователя"})
-		return
-	}
-	userID := uint(userIDVal.(float64))
-
-	roleVal, ok := c.Get("role")
-	if !ok || roleVal.(string) != "Менеджер" {
-		c.JSON(http.StatusForbidden, gin.H{"error": "Доступ разрешен только менеджеру"})
-		return
-	}
-
-	title := c.PostForm("title")
-	description := c.PostForm("description")
-
-	var project models.Project
-	if err := h.db.Where("manager_id = ?", userID).First(&project).Error; err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Проект менеджера не найден"})
-		return
-	}
-
-	uploadDir := filepath.Join("uploads", "reports")
-	if err := os.MkdirAll(uploadDir, os.ModePerm); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Не удалось создать директорию для отчетов"})
-		return
-	}
-
-	form, err := c.MultipartForm()
-	if err != nil && err != http.ErrNotMultipart {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Ошибка чтения файлов"})
-		return
-	}
-
-	savedPaths := []string{}
-	if form != nil {
-		files := form.File["files"]
-		for _, file := range files {
-			filename := fmt.Sprintf("%d_%s", time.Now().UnixNano(), file.Filename)
-			filePath := filepath.Join(uploadDir, filename)
-
-			if err := c.SaveUploadedFile(file, filePath); err != nil {
-				c.JSON(http.StatusInternalServerError, gin.H{"error": "Ошибка сохранения файла"})
-				return
-			}
-
-			savedPaths = append(savedPaths, filePath)
-		}
-	}
-
-	report := models.Report{
-		Title:       title,
-		ProjectID:   project.ID,
-		UserID:      userID,
-		Description: description,
-		FilePaths:   savedPaths,
-	}
-
-	if err := h.db.Create(&report).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Ошибка создания отчета"})
-		return
-	}
-
-	c.JSON(http.StatusCreated, gin.H{
-		"message": "Отчет создан",
-		"report":  report,
-	})
-}
-
-func (h *ReportsHandler) ReportFileDownload(c *gin.Context) {
-	filename := c.Param("filename")
-
-	filePath := filepath.Join("uploads", "reports", filename)
-
-	if _, err := os.Stat(filePath); os.IsNotExist(err) {
-		c.JSON(http.StatusNotFound, gin.H{"error": "Файл не найден"})
-		return
-	}
-
-	c.FileAttachment(filePath, filename)
-}
-
-func (h *ReportsHandler) ListReports(c *gin.Context) {
+func (h *ReportsHandler) BossListReports(c *gin.Context) {
 	var reports []models.Report
-	if err := h.db.Preload("User").Preload("Project").Find(&reports).Error; err != nil {
+	if err := h.db.
+		Joins("JOIN defects on defects.id = reports.defect_id").
+		Where("defects.status = ? AND reports.status = ?", "closed", "approve").
+		Preload("User").Preload("Project").
+		Find(&reports).Error; err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Все отчеты не найдены"})
 		return
 	}
@@ -142,6 +63,19 @@ func (h *ReportsHandler) ManagerListReports(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, reports)
+}
+
+func (h *ReportsHandler) ReportFileDownload(c *gin.Context) {
+	filename := c.Param("filename")
+
+	filePath := filepath.Join("uploads", "reports", filename)
+
+	if _, err := os.Stat(filePath); os.IsNotExist(err) {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Файл не найден"})
+		return
+	}
+
+	c.FileAttachment(filePath, filename)
 }
 
 func (h *ReportsHandler) ExportReportCSV(c *gin.Context) {
@@ -436,4 +370,33 @@ func (h *ReportsHandler) EngineerPendingReports(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, reports)
+}
+
+func (h *ReportsHandler) LeaderReportsStats(c *gin.Context) {
+	role, exists := c.Get("role")
+	if !exists || role != "Руководитель" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Только руководитель может получить данные по отчетам для графиков"})
+		return
+	}
+
+	type DailyReports struct {
+		Date  time.Time `json:"date"`
+		Count int       `json:"count"`
+	}
+
+	var stats []DailyReports
+
+	if err := h.db.
+		Table("reports").
+		Select("DATE(created_at) AS date, COUNT(*) AS count").
+		Where("created_at >= CURRENT_DATE - INTERVAL '7 days'").
+		Group("DATE(created_at)").
+		Order("DATE(created_at)").
+		Scan(&stats).Error; err != nil {
+
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Не удалось получить статистику отчетов"})
+		return
+	}
+
+	c.JSON(http.StatusOK, stats)
 }

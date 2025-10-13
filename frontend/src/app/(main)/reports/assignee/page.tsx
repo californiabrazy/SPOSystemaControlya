@@ -92,7 +92,7 @@ export default function MyDefects() {
       </div>
 
       {defects.length === 0 ? (
-        <p className="text-[#657166] mt-6 flex justify-center text-lg">
+        <p className="text-gray-600 mt-6 flex justify-center text-lg">
           Нет назначенных дефектов
         </p>
       ) : (

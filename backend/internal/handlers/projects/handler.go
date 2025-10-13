@@ -16,7 +16,7 @@ func NewProjectHandler(db *gorm.DB) *ProjectsHandler {
 	return &ProjectsHandler{db: db}
 }
 
-func (h *ProjectsHandler) ManagerListProjects(c *gin.Context) {
+func (h *ProjectsHandler) ManagerViewProject(c *gin.Context) {
 	userID, exists := c.Get("userID")
 	if !exists {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Не удалось определить пользователя"})

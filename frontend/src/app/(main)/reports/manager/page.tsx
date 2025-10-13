@@ -7,7 +7,6 @@ import { useRoleGuard } from "@/hooks/useRoleGuard";
 import SelectReportModal from "@/components/forms/SelectReportManagerModal";
 import ReportReviewModal from "@/components/forms/ReviewReportManagerModal";
 
-
 const API_URL = process.env.NEXT_PUBLIC_API_URL!;
 
 type Defect = {
@@ -25,11 +24,19 @@ type Report = {
   defect: Defect;
 };
 
+const STATUS_LABELS: Record<string, string> = {
+  pending: "Ожидает проверки",
+  approve: "Подтверждено",
+  reject: "Отклонено",
+};
+
 export default function ReportsPage() {
   const { checkToken } = useToken();
   const { loading: roleLoading, role } = useRoleGuard(["Менеджер"]);
   const [dataLoading, setDataLoading] = useState(true);
   const [reports, setReports] = useState<Report[]>([]);
+  const [filteredReports, setFilteredReports] = useState<Report[]>([]);
+  const [filters, setFilters] = useState({ status: "" });
   const [selectedReport, setSelectedReport] = useState<Report | null>(null);
   const [selectModalOpen, setSelectModalOpen] = useState(false);
   const router = useRouter();
@@ -43,12 +50,14 @@ export default function ReportsPage() {
         router.push("/login");
         return;
       }
+
       const res = await fetch(`${API_URL}/api/reports/yours/manager/pending`, {
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${localStorage.getItem("access_token")}`,
         },
       });
+
       if (!res.ok) throw new Error("Ошибка загрузки отчётов");
       const data = await res.json();
       setReports(data);
@@ -65,6 +74,14 @@ export default function ReportsPage() {
     fetchReports();
   }, [checkToken, router]);
 
+  useEffect(() => {
+    let result = [...reports];
+    if (filters.status) {
+      result = result.filter((report) => report.status === filters.status);
+    }
+    setFilteredReports(result);
+  }, [reports, filters]);
+
   const handleReportSelect = (report: Report) => {
     setSelectedReport(report);
     setSelectModalOpen(false);
@@ -78,9 +95,23 @@ export default function ReportsPage() {
 
   return (
     <div className="bg-[#f0f9fa]">
-      {/* === Заголовок и кнопка справа === */}
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Отчёты, ожидающие проверки</h1>
+      {/* === Заголовок и кнопки === */}
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 gap-4">
+        <div className="flex items-center gap-4">
+          <h1 className="text-2xl font-bold text-gray-900">Отчёты, ожидающие проверки</h1>
+          <select
+            value={filters.status}
+            onChange={(e) => setFilters((prev) => ({ ...prev, status: e.target.value }))}
+            className="w-[180px] h-[40px] rounded bg-white px-2 py-1 text-black outline-none focus:ring-2 focus:ring-[#99CDD8] border-none shadow-md"
+          >
+            <option value="">Все статусы</option>
+            {Object.entries(STATUS_LABELS).map(([value, label]) => (
+              <option key={value} value={value}>
+                {label}
+              </option>
+            ))}
+          </select>
+        </div>
         <button
           onClick={() => setSelectModalOpen(true)}
           className="bg-[#4A5678] text-white px-6 py-2 rounded-md hover:bg-[#37415C] transition"
@@ -89,26 +120,33 @@ export default function ReportsPage() {
         </button>
       </div>
 
-      {reports.length === 0 ? (
+      {/* === Список отчётов === */}
+      {filteredReports.length === 0 ? (
         <p className="text-[#657166] mt-6 flex justify-center text-lg">
           Нет отчётов для проверки
         </p>
       ) : (
         <div className="mt-6 grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
-          {reports.map((report) => (
+          {filteredReports.map((report) => (
             <div
               key={report.id}
-              className="bg-white rounded shadow-md border border-gray-200 p-4 flex flex-col gap-3"
+              className="bg-white rounded shadow-md border border-gray-200 p-4 flex flex-col gap-3 transition hover:shadow-lg"
             >
-              <h3 className="font-bold text-lg text-gray-900 line-clamp-2 mb-2">
+              <h3 className="font-bold text-lg text-gray-900 line-clamp-2">
                 {report.title}
               </h3>
-              <p className="text-sm text-gray-600">
-                Дефект: {report.defect?.title || "—"}
-              </p>
-              <p className="text-sm text-gray-600 line-clamp-3">
-                {report.description}
-              </p>
+              <p className="text-sm text-black">Дефект: {report.defect?.title || "—"}</p>
+              <span
+                className={`inline-block px-2 py-1 text-xs font-medium rounded ${
+                  report.status === "pending"
+                    ? "bg-[#D0E8FF]"
+                    : report.status === "approved"
+                    ? "bg-[#D1FCD8]"
+                    : "bg-[#F3B2AA]"
+                } text-black w-fit`}
+              >
+                Статус дефекта: {STATUS_LABELS[report.status]}
+              </span>
             </div>
           ))}
         </div>

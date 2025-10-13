@@ -47,15 +47,15 @@ export default function Sidebar({ activeTab }: SidebarProps) {
   }, []);
 
   const tabs = [
-    { id: "dashboard", label: "Дашборд", icon: <LayoutDashboard size={20} />, href: "/" },
-    { id: "projects", label: "Проект", icon: <Folder size={20} />, href: "/projects/manager" },
-    { id: "defects_engineer", label: "Дефекты", icon: <AlertTriangle size={20} />, href: "/defects/engineer" },
-    { id: "defects_manager", label: "Дефекты", icon: <AlertTriangle size={20} />, href: "/defects/manager" },
-    { id: "admin_users", label: "Пользователи", icon: <Users size={20} />, href: "/admin/users" },
-    { id: "admin_projects", label: "Проекты", icon: <FolderKanban size={20} />, href: "/admin/projects" },
-    { id: "reports_assignee", label: "Отчёты", icon: <AlertTriangle size={20} />, href: "/reports/assignee" },
-    { id: "reports_manager", label: "Отчёты", icon: <FileText size={20} />, href: "/reports/manager" },
-    { id: "reports_engineer", label: "Отчёты", icon: <FileText size={20} />, href: "/reports/engineer" },
+    { id: "dashboard", label: "Дашборд", href: "/" },
+    { id: "projects", label: "Проект", href: "/projects/manager" },
+    { id: "defects_engineer", label: "Дефекты", href: "/defects/engineer" },
+    { id: "defects_manager", label: "Дефекты", href: "/defects/manager" },
+    { id: "admin_users", label: "Пользователи", href: "/admin/users" },
+    { id: "admin_projects", label: "Проекты", href: "/admin/projects" },
+    { id: "reports_assignee", label: "Отчёты", href: "/reports/assignee" },
+    { id: "reports_manager", label: "Отчёты", href: "/reports/manager" },
+    { id: "reports_engineer", label: "Отчёты", href: "/reports/engineer" },
   ];
 
   const visibleTabs = (() => {
@@ -153,7 +153,7 @@ export default function Sidebar({ activeTab }: SidebarProps) {
       <aside className="fixed top-0 left-0 w-64 h-screen bg-white text-[#657166] p-6 shadow-md flex flex-col justify-between">
         <div>
           <div
-            className="text-2xl font-bold flex justify-center text-[#8A9D67] mb-8 border rounded border-3 cursor-pointer"
+            className="text-2xl font-bold flex justify-center text-[#8BBCC6] mb-8 border rounded border-3 cursor-pointer"
             onClick={handleClickLogo}
           >
             СистемаКонтроля
@@ -167,11 +167,10 @@ export default function Sidebar({ activeTab }: SidebarProps) {
                   href={tab.href}
                   className={`flex items-center space-x-2 p-2 w-full text-left rounded transition-colors ${
                     isActive
-                      ? "bg-[#8BBCC6] text-white"
-                      : "hover:bg-[#8BBCC6] hover:text-white"
+                      ? "bg-[#4A5678] text-white"
+                      : "hover:bg-[#37415C] hover:text-white"
                   }`}
                 >
-                  {tab.icon}
                   <span>{tab.label}</span>
                 </Link>
               );
@@ -183,7 +182,6 @@ export default function Sidebar({ activeTab }: SidebarProps) {
           onClick={() => setIsLogoutOpen(true)}
           className="flex items-center space-x-2 p-2 w-full text-left rounded transition-colors text-white bg-[#4A5678] hover:bg-[#37415C]"
         >
-          <LogOut size={20} />
           <span>Выход</span>
         </button>
       </aside>

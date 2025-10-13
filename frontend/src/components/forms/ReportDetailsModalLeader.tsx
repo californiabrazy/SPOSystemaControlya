@@ -35,9 +35,38 @@ export default function LeaderReportDetailsModal({
 
   if (!isOpen || !report) return null;
 
+  // Скачивание вложений через API /download/:filename
+  const handleDownloadFile = async (file: string) => {
+    try {
+      const filename = file.split("/").pop();
+      if (!filename) throw new Error("Имя файла не определено");
+      const response = await fetch(`${API_URL}/api/reports/download/${filename}`, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+        },
+      });
+
+      if (!response.ok) throw new Error("Файл не найден");
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error(err);
+      alert("Не удалось скачать файл");
+    }
+  };
+
+  // Экспорт CSV
   const handleExportCSV = async () => {
     try {
-      const response = await fetch(`${API_URL}/export/${report.id}/csv`, {
+      const response = await fetch(`${API_URL}/api/reports/export/${report.id}/csv`, {
         method: "GET",
         headers: {
           Authorization: `Bearer ${localStorage.getItem("access_token")}`,
@@ -79,8 +108,7 @@ export default function LeaderReportDetailsModal({
             <div className="flex gap-1">
               <p className="font-medium text-black">Автор:</p>
               <p className="text-black">
-                {report.user.last_name} {report.user.first_name}{" "}
-                {report.user.middle_name || ""}
+                {report.user.last_name} {report.user.first_name} {report.user.middle_name || ""}
               </p>
             </div>
             {report.user.email && <p className="text-gray-500">{report.user.email}</p>}
@@ -108,15 +136,13 @@ export default function LeaderReportDetailsModal({
               {report.attachments.map((file) => {
                 const filename = file.split("/").pop();
                 return (
-                  <a
+                  <button
                     key={file}
-                    href={`${API_URL}/${file}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-blue-600 hover:underline"
+                    onClick={() => handleDownloadFile(file)}
+                    className="text-blue-600 hover:underline text-left"
                   >
                     {filename}
-                  </a>
+                  </button>
                 );
               })}
             </div>
@@ -125,13 +151,13 @@ export default function LeaderReportDetailsModal({
           )}
         </div>
 
-        {/* Кнопки управления */}
+        {/* Кнопки */}
         <div className="flex justify-center gap-2 mt-4">
           <button
             onClick={handleExportCSV}
             className="px-4 py-2 rounded bg-[#8BBCC6] hover:bg-[#99CDD8] text-white"
           >
-            Экспортировать
+            Экспортировать CSV
           </button>
           <button
             onClick={onClose}

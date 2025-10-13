@@ -74,9 +74,6 @@ export default function SelectReportModal({ isOpen, onClose, onSelect, reports }
               >
                 <div className="flex flex-col sm:flex-row sm:items-center sm:gap-2">
                   <p className="font-medium text-black">{report.title}</p>
-                  <p className="text-sm text-gray-600">
-                    Дефект: {report.defect?.title || "—"}
-                  </p>
                 </div>
               </div>
             ))

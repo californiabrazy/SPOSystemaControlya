@@ -250,6 +250,63 @@ func (h *DefectHandler) ManagerEditDefect(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"defect": defect})
 }
 
+func (h *DefectHandler) LeaderDefectsStats(c *gin.Context) {
+	userID, exists := c.Get("userID")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Не удалось определить пользователя"})
+		return
+	}
+
+	var user models.User
+	if err := h.db.Where("id = ?", userID).First(&user).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Не удалось получить данные пользователя"})
+		return
+	}
+
+	if user.RoleID != 4 {
+		c.JSON(http.StatusForbidden, gin.H{"error": "Доступ запрещён. Требуется роль Руководителя"})
+		return
+	}
+
+	var total int64
+	if err := h.db.Model(&models.Defect{}).Count(&total).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Не удалось получить статистику дефектов"})
+		return
+	}
+
+	var new int64
+	if err := h.db.Model(&models.Defect{}).Where("status = ?", "new").Count(&new).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Не удалось получить статистику дефектов"})
+		return
+	}
+
+	var closed int64
+	if err := h.db.Model(&models.Defect{}).Where("status = ?", "closed").Count(&closed).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Не удалось получить статистику дефектов"})
+		return
+	}
+
+	var resolved int64
+	if err := h.db.Model(&models.Defect{}).Where("status = ?", "resolved").Count(&resolved).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Не удалось получить статистику дефектов"})
+		return
+	}
+
+	var in_progress int64
+	if err := h.db.Model(&models.Defect{}).Where("status = ?", "in_progress").Count(&in_progress).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Не удалось получить статистику дефектов"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"total_registered": total,
+		"new":              new,
+		"closed":           closed,
+		"resolved":         resolved,
+		"in_progress":      in_progress,
+	})
+}
+
 func (h *DefectHandler) AttachmentsDownload(c *gin.Context) {
 	filename := c.Param("filename")
 

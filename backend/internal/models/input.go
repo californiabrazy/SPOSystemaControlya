@@ -55,3 +55,18 @@ type ProjectSummary struct {
 	EngineersCount int    `json:"engineers_count"`
 	AssigneesCount int    `json:"assignees_count"`
 }
+
+type ProjectSummaryWithDetails struct {
+	ID          uint           `json:"id"`
+	Name        string         `json:"name"`
+	Description string         `json:"description"`
+	Defects     []DefectDetail `json:"defects"`
+}
+
+type DefectDetail struct {
+	ID         uint   `json:"id"`
+	Title      string `json:"title"`
+	Status     string `json:"status"`
+	AuthorID   uint   `json:"author_id"`
+	AssigneeID *uint  `json:"assignee_id"`
+}

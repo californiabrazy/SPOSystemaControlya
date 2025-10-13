@@ -90,7 +90,7 @@ export default function ReportsPage() {
       </div>
 
       {reports.length === 0 ? (
-        <p className="text-[#657166] mt-6 flex justify-center text-lg">
+        <p className="text-gray-600 mt-6 flex justify-center text-lg">
           Нет отчётов для проверки
         </p>
       ) : (

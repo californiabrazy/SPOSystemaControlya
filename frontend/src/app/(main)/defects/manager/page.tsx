@@ -218,12 +218,15 @@ export default function ManagerDefects() {
                 </div>
               </div>
 
-              <div className="text-[#657166] space-y-1 text-sm">
+              <div className="text-black space-y-1 text-sm">
                 <p>
                   <span className="font-medium text-black">Исполнитель:</span>{" "}
-                  {defect.assignee ? `${defect.assignee.first_name} ${defect.assignee.last_name}` : "не назначен"}
+                  {defect.assignee && defect.assignee.first_name
+                    ? `${defect.assignee.first_name} ${defect.assignee.last_name}`
+                    : "не назначен"}
                 </p>
               </div>
+
             </div>
           ))}
         </div>
