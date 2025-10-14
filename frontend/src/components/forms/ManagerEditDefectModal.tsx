@@ -116,7 +116,7 @@ export default function DefectEditModal({ defect, isOpen, onClose, onSave }: Pro
               value={assigneeId ?? ""}
               onChange={(e) => setAssigneeId(e.target.value ? Number(e.target.value) : undefined)}
               className="w-full h-[48px] rounded bg-[#F0F0F0] px-4 py-3 text-black outline-none focus:ring-2 focus:ring-[#99CDD8] border-none shadow-md"
-              disabled={loading}
+              disabled={loading || !!defect?.assignee_id}
             >
               <option value="">Выберите исполнителя</option>
               {assignees.map((user) => (
@@ -132,18 +132,27 @@ export default function DefectEditModal({ defect, isOpen, onClose, onSave }: Pro
             <p className="ml-1 mb-1">Срок выполнения</p>
             <input
               type="datetime-local"
-              value={duedate}
+              value={
+                duedate
+                  ? duedate.slice(0, 16) 
+                  : defect.duedate
+                  ? new Date(defect.duedate).toISOString().slice(0, 16)
+                  : ""
+              }
               onChange={(e) => setDueDate(e.target.value)}
+              min={new Date().toISOString().slice(0, 16)} 
               className="w-full rounded bg-[#F0F0F0] px-4 py-3 text-black outline-none focus:ring-2 focus:ring-[#99CDD8] border-none shadow-md"
+              disabled={!!(defect.assignee_id && defect.duedate)}
             />
           </div>
+
 
           
         </div>
 
         <div className="flex justify-center gap-2 mt-2">
           {/* Показываем кнопку "Сохранить" только если дефекту ещё не назначен исполнитель и не задан срок */}
-          {!(defect.assignee_id && defect.duedate) && (
+          {!(defect.assignee_id || defect.duedate) && (
             <button
               className="px-6 py-2 rounded bg-[#8BBCC6] hover:bg-[#99CDD8] text-white disabled:opacity-50"
               onClick={handleSave}

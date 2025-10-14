@@ -58,7 +58,7 @@ export default function SelectDefectModal({ defects, isOpen, onClose, onSelect }
   const filteredDefects = defects.filter(
     (defect) =>
       defect.title.toLowerCase().includes(searchTerm.toLowerCase()) &&
-      defect.status === "new"
+      defect.status === ""
   );
 
   return (

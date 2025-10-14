@@ -87,7 +87,7 @@ export default function MyDefects() {
           onClick={() => setSelectModalOpen(true)}
           className="bg-[#4A5678] text-white px-6 py-2 rounded-md hover:bg-[#37415C] transition"
         >
-          Добавить отчёт
+          Поиск...
         </button>
       </div>
 
@@ -101,6 +101,7 @@ export default function MyDefects() {
             <div
               key={defect.id}
               className="bg-white rounded-lg shadow-md border border-gray-200 p-4 flex flex-col gap-3"
+              onClick={() => setSelectedDefect(defect)}
             >
               <h3 className="font-bold text-lg text-gray-900 line-clamp-2 mb-2">
                 {defect.title}

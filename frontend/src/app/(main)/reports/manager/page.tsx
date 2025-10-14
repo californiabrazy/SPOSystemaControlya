@@ -106,7 +106,7 @@ export default function ReportsPage() {
           onClick={() => setSelectModalOpen(true)}
           className="bg-[#4A5678] text-white px-6 py-2 rounded-md hover:bg-[#37415C] transition"
         >
-          Проверить
+          Поиск...
         </button>
       </div>
 

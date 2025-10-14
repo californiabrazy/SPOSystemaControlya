@@ -55,6 +55,7 @@ export default function DashboardPage() {
   const [selectedReport, setSelectedReport] = useState<Report | null>(null);
   const [defectStats, setDefectStats] = useState<DefectStats | null>(null);
   const [reportsStats, setReportsStats] = useState<ReportsStats[]>([]);
+  const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
     const initialize = async () => {
@@ -131,6 +132,10 @@ export default function DashboardPage() {
     initialize();
   }, [checkToken, router, role]);
 
+  const filteredReports = reports.filter((r) =>
+    r.title.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   if (roleLoading || loading) {
     return <div className="min-h-screen flex items-center justify-center">Загрузка...</div>;
   }
@@ -191,10 +196,17 @@ export default function DashboardPage() {
     return (
       <div>
         {/* Заголовок */}
-        <div className="flex justify-between items-center mb-6">
+        <div className="flex items-center justify-between mb-6">
           <h1 className="text-2xl font-bold text-gray-900">
             Добрый день{firstName ? `, ${firstName}` : ""}!
           </h1>
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Поиск по отчетам..."
+            className="rounded ml-4 bg-white px-1 w-64 py-3 text-black placeholder-gray-500 outline-none focus:ring-2 focus:ring-[#99CDD8] shadow-md"
+          />
         </div>
 
         {/* ===== ПЕРВАЯ СТРОКА: СПИСОК ОТЧЕТОВ ===== */}
@@ -210,8 +222,8 @@ export default function DashboardPage() {
 
             {showReportsList && (
               <div className="mt-2 max-h-64 overflow-y-auto rounded p-2 bg-white shadow-sm w-full">
-                {reports.length > 0 ? (
-                  reports.map((r) => (
+                {filteredReports.length > 0 ? (
+                  filteredReports.map((r) => (
                     <div
                       key={r.id}
                       className="cursor-pointer flex justify-between items-center py-2 px-2 hover:bg-gray-50 rounded-md"
@@ -226,9 +238,7 @@ export default function DashboardPage() {
                     </div>
                   ))
                 ) : (
-                  <div className="text-center text-gray-500">
-                    Отчеты отсутствуют
-                  </div>
+                  <div className="text-center text-gray-500">Отчеты не найдены</div>
                 )}
               </div>
             )}

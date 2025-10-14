@@ -229,7 +229,7 @@ export default function Defects() {
             className="bg-[#4A5678] text-white px-4 py-2 rounded-md hover:bg-[#37415C] transition-colors"
             onClick={() => setShowSelectModal(true)}
           >
-            Редактировать
+            Поиск...
           </button>
         </div>
       </div>

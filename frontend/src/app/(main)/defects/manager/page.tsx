@@ -176,7 +176,7 @@ export default function ManagerDefects() {
           className="bg-[#4A5678] text-white px-4 py-2 rounded-md hover:bg-[#37415C] transition-colors"
           onClick={() => setShowSelectModal(true)}
         >
-          Назначить исполнителя
+          Поиск...
         </button>
       </div>
 
