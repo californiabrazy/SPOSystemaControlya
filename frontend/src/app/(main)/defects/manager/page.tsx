@@ -101,7 +101,7 @@ export default function ManagerDefects() {
   }, [defects, filters]);
 
   const handleEditDefect = useCallback(
-    async (id: number, updatedFields: { assignee_id?: number; status?: string }) => {
+    async (id: number, updatedFields: { assignee_id?: number; status?: string; duedate?: string }) => {
       try {
         const res = await fetch(`${API_URL}/api/defects/edit/manager/${id}`, {
           method: "PUT",
@@ -125,6 +125,10 @@ export default function ManagerDefects() {
     },
     []
   );
+
+  const handleCardClick = (defect: Defect) => {
+    setSelectedDefect(defect);
+  };
 
   const handleFilterChange = (key: keyof typeof filters, value: string) => {
     setFilters((prev) => ({ ...prev, [key]: value }));
@@ -177,12 +181,13 @@ export default function ManagerDefects() {
       </div>
 
       {filteredDefects.length === 0 ? (
-        <p className="text-[#657166] mt-6 flex justify-center text-lg">Нет дефектов</p>
+        <p className="text-gray-600 mt-6 flex justify-center text-lg">Нет дефектов</p>
       ) : (
         <div className="mt-6 grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
           {filteredDefects.map((defect) => (
             <div
               key={defect.id}
+              onClick={() => handleCardClick(defect)}
               className="bg-white rounded-lg shadow-md border border-gray-200 p-4 flex flex-col gap-3 transition hover:shadow-lg w-full max-w-[300px] mx-auto"
             >
               <div className="flex-1">

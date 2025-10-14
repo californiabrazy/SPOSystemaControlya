@@ -89,7 +89,7 @@ export default function ReportModal({ defect, isOpen, onClose, onSave }: Props) 
                 type="file"
                 multiple
                 onChange={(e) => setFiles(e.target.files ? Array.from(e.target.files) : [])}
-                className="w-full"
+                className="w-full ml-1 mb-1"
             />
             </div>
         </div>

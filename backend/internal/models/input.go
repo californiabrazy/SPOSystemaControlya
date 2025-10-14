@@ -1,5 +1,7 @@
 package models
 
+import "time"
+
 type LoginInput struct {
 	Email    string `json:"email" binding:"required,email"`
 	Password string `json:"password" binding:"required"`
@@ -36,8 +38,9 @@ type EngineerEditDefectInput struct {
 }
 
 type ManagerEditDefectInput struct {
-	AssigneeID *uint  `json:"assignee_id"`
-	Status     string `json:"status"`
+	AssigneeID *uint      `json:"assignee_id"`
+	Status     string     `json:"status"`
+	DueDate    *time.Time `json:"duedate"`
 }
 
 type DefectAttachment struct {

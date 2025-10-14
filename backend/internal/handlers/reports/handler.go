@@ -56,7 +56,7 @@ func (h *ReportsHandler) ManagerListReports(c *gin.Context) {
 		Joins("JOIN projects ON projects.id = reports.project_id").
 		Joins("JOIN defects on defects.id = reports.defect_id").
 		Preload("Project").
-		Where("projects.manager_id = ? AND defects.status = ?", managerID, "resolved").
+		Where("projects.manager_id = ? AND defects.status = ? AND reports.status = ?", managerID, "resolved", "approve").
 		Find(&reports).Error; err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Отчёты менеджера не найдены"})
 		return
@@ -213,6 +213,7 @@ func (h *ReportsHandler) ManagerReviewReport(c *gin.Context) {
 	userID, exists := c.Get("userID")
 	if !exists {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Не удалось получить ID текущего пользователя"})
+		return
 	}
 	managerID := uint(userID.(float64))
 
@@ -241,23 +242,54 @@ func (h *ReportsHandler) ManagerReviewReport(c *gin.Context) {
 		return
 	}
 
-	if input.Decision != "approve" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Статус отчета после проверки инженера должен быть approve"})
-	}
-
 	if report.Status != "approve" {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Отчет должен быть подтвержден инженером"})
 		return
 	}
 
-	defect.Status = "closed"
+	isOverdue := defect.DueDate != nil && time.Now().After(*defect.DueDate)
 
-	if err := h.db.Save(&defect).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Не удалось проверить дефект"})
+	switch input.Decision {
+	case "approve":
+		if isOverdue {
+			newDue := time.Now().Add(72 * time.Hour)
+			defect.Status = "in_progress"
+			defect.DueDate = &newDue
+			if err := h.db.Save(&defect).Error; err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "Не удалось обновить срок выполнения"})
+				return
+			}
+		} else {
+			defect.Status = "closed"
+			if err := h.db.Save(&defect).Error; err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "Не удалось закрыть дефект"})
+				return
+			}
+		}
+
+	case "reject":
+		newDue := time.Now().Add(72 * time.Hour)
+		defect.Status = "in_progress"
+		report.Status = "reject"
+		defect.DueDate = &newDue
+		if err := h.db.Save(&defect).Error; err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Не удалось обновить дефект после отклонения"})
+			return
+		}
+		if err := h.db.Save(&report).Error; err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Не удалось обновить отчет после отклонения"})
+			return
+		}
+
+	default:
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Некорректное значение decision. Используйте 'approve' или 'reject'"})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"report": report, "defect": defect})
+	c.JSON(http.StatusOK, gin.H{
+		"report": report,
+		"defect": defect,
+	})
 }
 
 func (h *ReportsHandler) ManagerPendingReports(c *gin.Context) {

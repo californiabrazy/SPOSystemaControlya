@@ -16,13 +16,14 @@ type Defect = {
   status: string;
   assignee_id?: number;
   assignee?: User;
+  duedate?: string;
 };
 
 type Props = {
   defect: Defect | null;
   isOpen: boolean;
   onClose: () => void;
-  onSave: (id: number, updated: { status?: string; assignee_id?: number }) => void;
+  onSave: (id: number, updated: { status?: string; assignee_id?: number; duedate?: string }) => void;
 };
 
 const STATUS_OPTIONS = [
@@ -39,6 +40,7 @@ export default function DefectEditModal({ defect, isOpen, onClose, onSave }: Pro
   const [status, setStatus] = useState("");
   const [assignees, setAssignees] = useState<User[]>([]);
   const [loading, setLoading] = useState(false);
+  const [duedate, setDueDate] = useState<string>("");
 
   useEffect(() => {
     if (isOpen) {
@@ -86,7 +88,9 @@ export default function DefectEditModal({ defect, isOpen, onClose, onSave }: Pro
       return;
     }
 
-    onSave(defect.id, { assignee_id: assigneeId, status });
+    const rfcDueDate = duedate ? new Date(duedate).toISOString() : undefined;
+
+    onSave(defect.id, { assignee_id: assigneeId, status, duedate: rfcDueDate });
     onClose();
   };
 
@@ -124,22 +128,35 @@ export default function DefectEditModal({ defect, isOpen, onClose, onSave }: Pro
             {loading && <p className="text-sm text-gray-500 mt-1">Загрузка исполнителей...</p>}
           </div>
 
+          <div>
+            <p className="ml-1 mb-1">Срок выполнения</p>
+            <input
+              type="datetime-local"
+              value={duedate}
+              onChange={(e) => setDueDate(e.target.value)}
+              className="w-full rounded bg-[#F0F0F0] px-4 py-3 text-black outline-none focus:ring-2 focus:ring-[#99CDD8] border-none shadow-md"
+            />
+          </div>
+
           
         </div>
 
         <div className="flex justify-center gap-2 mt-2">
-          <button
-            className="px-6 py-2 rounded bg-[#8BBCC6] hover:bg-[#99CDD8] text-white disabled:opacity-50"
-            onClick={handleSave}
-            disabled={loading}
-          >
-            Сохранить
-          </button>
+          {/* Показываем кнопку "Сохранить" только если дефекту ещё не назначен исполнитель и не задан срок */}
+          {!(defect.assignee_id && defect.duedate) && (
+            <button
+              className="px-6 py-2 rounded bg-[#8BBCC6] hover:bg-[#99CDD8] text-white disabled:opacity-50"
+              onClick={handleSave}
+              disabled={loading}
+            >
+              Сохранить
+            </button>
+          )}
           <button
             className="px-6 py-2 rounded bg-gray-300 hover:bg-gray-400 text-black"
             onClick={onClose}
           >
-            Отмена
+            {defect.assignee_id && defect.duedate ? "Закрыть" : "Отмена"}
           </button>
         </div>
       </div>

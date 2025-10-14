@@ -106,7 +106,7 @@ export default function ReportReviewModal({ isOpen, report, onClose, onApprove }
 
           <div className="col-span-2">
             <p className="ml-1 mb-1">Вложения</p>
-            <div className="flex gap-3 flex-wrap">
+            <div className="flex gap-3 flex-wrap ml-1 mb-1">
               {report.attachments && report.attachments.length > 0 ? (
                 report.attachments.map((path, i) => (
                   <a

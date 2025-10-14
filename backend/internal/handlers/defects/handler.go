@@ -59,6 +59,7 @@ func (h *DefectHandler) AddDefect(c *gin.Context) {
 		ProjectID:   uint(projectID),
 		AuthorID:    authorID,
 		Attachments: paths,
+		DueDate:     nil,
 	}
 
 	if err := h.db.Create(&defect).Error; err != nil {
@@ -239,6 +240,13 @@ func (h *DefectHandler) ManagerEditDefect(c *gin.Context) {
 
 	if input.AssigneeID != nil && defect.Status == "new" {
 		defect.Status = "in_progress"
+	}
+
+	defect.DueDate = input.DueDate
+
+	if input.DueDate != nil && input.DueDate.Before(time.Now()) {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Срок выполнения не может быть в прошлом"})
+		return
 	}
 
 	if err := h.db.Save(&defect).Error; err != nil {

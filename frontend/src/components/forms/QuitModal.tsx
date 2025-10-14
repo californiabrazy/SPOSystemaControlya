@@ -17,7 +17,7 @@ export default function LogoutModal({ isOpen, onClose, onConfirm }: LogoutModalP
         <h2 className="justify-center flex text-xl font-semibold text-black mb-4">
           Подтверждение выхода
         </h2>
-        <p className="text-[#657166] mb-6 flex justify-center">
+        <p className="text-gray-600 mb-6 flex justify-center">
           Вы уверены, что хотите выйти из аккаунта?
         </p>
 

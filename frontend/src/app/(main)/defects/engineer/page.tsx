@@ -41,7 +41,7 @@ export default function Defects() {
   const [selectedDefectId, setSelectedDefectId] = useState<number | null>(null);
   const [filters, setFilters] = useState({
     priority: "",
-    status: "",
+    status: "new",
   });
   const router = useRouter();
 
@@ -235,7 +235,7 @@ export default function Defects() {
       </div>
 
       {filteredDefects.length === 0 ? (
-        <p className="text-[#657166] mt-6 flex justify-center text-lg">Нет добавленных дефектов</p>
+        <p className="text-gray-600 mt-6 flex justify-center text-lg">Нет добавленных дефектов</p>
       ) : (
         <div className="mt-6 grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
           {filteredDefects.map((defect) => (

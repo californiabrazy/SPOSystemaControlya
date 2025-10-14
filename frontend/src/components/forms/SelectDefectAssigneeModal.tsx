@@ -75,7 +75,7 @@ export default function SelectDefectForReportModal({
         {/* Список дефектов */}
         <div className="max-h-64 overflow-y-auto space-y-2">
           {filteredDefects.length === 0 ? (
-            <p className="text-[#657166] text-center">
+            <p className="text-gray-600 text-center">
               Нет дефектов, соответствующих поиску
             </p>
           ) : (

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL!;
 
@@ -8,6 +8,7 @@ type Defect = {
   id: number;
   title: string;
   status: string;
+  duedate?: string; // ISO строка
 };
 
 type Report = {
@@ -23,17 +24,33 @@ type Props = {
   isOpen: boolean;
   report: Report;
   onClose: () => void;
-  onApprove: () => void;
+  onDecision: () => void; // вызывается после approve/reject
 };
 
 const MAX_CHARS = 200;
 
-export default function ReportReviewModal({ isOpen, report, onClose, onApprove }: Props) {
-  const [approveLoading, setApproveLoading] = useState(false);
+export default function ReportReviewModal({ isOpen, report, onClose, onDecision }: Props) {
+  const [loading, setLoading] = useState(false);
+  const [isOverdue, setIsOverdue] = useState(false);
 
-  // === Принятие отчёта ===
-  const handleApprove = async () => {
-    setApproveLoading(true);
+  useEffect(() => {
+    if (!report.defect?.duedate) {
+      setIsOverdue(false);
+      return;
+    }
+    const due = new Date(report.defect.duedate);
+    setIsOverdue(new Date() > due);
+  }, [report.defect]);
+
+  if (!isOpen) return null;
+
+  const truncatedDescription =
+    report.description.length > MAX_CHARS
+      ? `${report.description.slice(0, MAX_CHARS)}... (обрезано)`
+      : report.description;
+
+  const handleDecision = async (decision: "approve" | "reject") => {
+    setLoading(true);
     try {
       const res = await fetch(`${API_URL}/api/reports/approve/manager/${report.id}`, {
         method: "POST",
@@ -41,25 +58,17 @@ export default function ReportReviewModal({ isOpen, report, onClose, onApprove }
           "Content-Type": "application/json",
           Authorization: `Bearer ${localStorage.getItem("access_token")}`,
         },
-        body: JSON.stringify({ decision: "approve" }),
+        body: JSON.stringify({ decision }),
       });
-      if (!res.ok) throw new Error("Ошибка при подтверждении отчёта");
-      onApprove();
+      if (!res.ok) throw new Error("Ошибка при обработке решения");
+      onDecision();
     } catch (err) {
       console.error(err);
-      alert("Не удалось подтвердить отчёт");
+      alert("Не удалось обработать решение");
     } finally {
-      setApproveLoading(false);
+      setLoading(false);
     }
   };
-
-  if (!isOpen) return null;
-
-  // Обрезаем описание, если превышает лимит
-  const truncatedDescription =
-    report.description.length > MAX_CHARS
-      ? `${report.description.slice(0, MAX_CHARS)}... (обрезано)`
-      : report.description;
 
   return (
     <div className="fixed inset-0 bg-[rgba(0,0,0,0.5)] flex items-center justify-center z-50">
@@ -89,6 +98,20 @@ export default function ReportReviewModal({ isOpen, report, onClose, onApprove }
             />
           </div>
 
+          <div>
+            <p className="ml-1 mb-1">Срок выполнения</p>
+            <input
+              type="text"
+              value={
+                report.defect?.duedate
+                  ? new Date(report.defect.duedate).toLocaleString()
+                  : "Не задан"
+              }
+              disabled
+              className="w-full rounded bg-[#F0F0F0] px-4 py-3"
+            />
+          </div>
+
           <div className="col-span-2">
             <p className="ml-1 mb-1">Описание</p>
             <textarea
@@ -106,7 +129,7 @@ export default function ReportReviewModal({ isOpen, report, onClose, onApprove }
 
           <div className="col-span-2">
             <p className="ml-1 mb-1">Вложения</p>
-            <div className="flex gap-3 flex-wrap">
+            <div className="flex gap-3 flex-wrap ml-1 mb-1">
               {report.attachments && report.attachments.length > 0 ? (
                 report.attachments.map((path, i) => (
                   <a
@@ -127,19 +150,39 @@ export default function ReportReviewModal({ isOpen, report, onClose, onApprove }
         </div>
 
         <div className="flex justify-center gap-2 mt-4">
-          <button
-            onClick={handleApprove}
-            disabled={approveLoading}
-            className="px-6 py-2 rounded bg-[#8BBCC6] hover:bg-[#99CDD8] text-white disabled:opacity-50"
-          >
-            {approveLoading ? "Сохраняю..." : "Принять"}
-          </button>
-          <button
-            onClick={onClose}
-            className="px-6 py-2 rounded bg-gray-300 hover:bg-gray-400 text-black"
-          >
-            Закрыть
-          </button>
+          {isOverdue ? (
+            // Только кнопка отклонить
+            <button
+              onClick={() => handleDecision("reject")}
+              disabled={loading}
+              className="px-6 py-2 rounded bg-red-500 hover:bg-red-600 text-white disabled:opacity-50"
+            >
+              {loading ? "Обрабатываю..." : "Отклонить"}
+            </button>
+          ) : (
+            <>
+              <button
+                onClick={() => handleDecision("approve")}
+                disabled={loading}
+                className="px-6 py-2 rounded bg-green-500 hover:bg-green-600 text-white disabled:opacity-50"
+              >
+                {loading ? "Обрабатываю..." : "Принять"}
+              </button>
+              <button
+                onClick={() => handleDecision("reject")}
+                disabled={loading}
+                className="px-6 py-2 rounded bg-red-500 hover:bg-red-600 text-white disabled:opacity-50"
+              >
+                {loading ? "Обрабатываю..." : "Отклонить"}
+              </button>
+              <button
+                onClick={onClose}
+                className="px-6 py-2 rounded bg-gray-300 hover:bg-gray-400 text-black"
+              >
+                Отмена
+              </button>
+            </>
+          )}
         </div>
       </div>
     </div>

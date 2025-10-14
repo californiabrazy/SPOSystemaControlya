@@ -87,6 +87,10 @@ export default function ReportsPage() {
     setSelectModalOpen(false);
   };
 
+  const handleCardClick = (report: Report) => {
+    setSelectedReport(report); // открываем окно проверки при клике
+  };
+
   if (dataLoading || roleLoading) {
     return <div className="min-h-screen flex items-center justify-center">Загрузка...</div>;
   }
@@ -97,21 +101,7 @@ export default function ReportsPage() {
     <div className="bg-[#f0f9fa]">
       {/* === Заголовок и кнопки === */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 gap-4">
-        <div className="flex items-center gap-4">
-          <h1 className="text-2xl font-bold text-gray-900">Отчёты, ожидающие проверки</h1>
-          <select
-            value={filters.status}
-            onChange={(e) => setFilters((prev) => ({ ...prev, status: e.target.value }))}
-            className="w-[180px] h-[40px] rounded bg-white px-2 py-1 text-black outline-none focus:ring-2 focus:ring-[#99CDD8] border-none shadow-md"
-          >
-            <option value="">Все статусы</option>
-            {Object.entries(STATUS_LABELS).map(([value, label]) => (
-              <option key={value} value={value}>
-                {label}
-              </option>
-            ))}
-          </select>
-        </div>
+        <h1 className="text-2xl font-bold text-gray-900">Отчёты, ожидающие проверки</h1>
         <button
           onClick={() => setSelectModalOpen(true)}
           className="bg-[#4A5678] text-white px-6 py-2 rounded-md hover:bg-[#37415C] transition"
@@ -130,7 +120,8 @@ export default function ReportsPage() {
           {filteredReports.map((report) => (
             <div
               key={report.id}
-              className="bg-white rounded shadow-md border border-gray-200 p-4 flex flex-col gap-3 transition hover:shadow-lg"
+              onClick={() => handleCardClick(report)} // 👈 добавлено
+              className="bg-white rounded shadow-md border border-gray-200 p-4 flex flex-col gap-3 transition hover:shadow-lg cursor-pointer"
             >
               <h3 className="font-bold text-lg text-gray-900 line-clamp-2">
                 {report.title}
@@ -166,7 +157,7 @@ export default function ReportsPage() {
           isOpen={!!selectedReport}
           report={selectedReport}
           onClose={() => setSelectedReport(null)}
-          onApprove={() => {
+          onDecision={() => {
             setSelectedReport(null);
             fetchReports();
           }}
