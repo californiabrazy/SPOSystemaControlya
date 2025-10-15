@@ -42,14 +42,24 @@ docker-compose down
 
 ## Технологии
 
-### Backend
+### Серверная часть
 
 * **Golang (Gin)**
 * **GORM**
 * **Docker Compose**
 
-### Frontend
+### Клиентская часть
 
 * **Next.js**
 * **TypeScript**
 * **TailwindCSS**
+
+### Тесты
+!("C:\Users\Tima\Documents\SPO\SystemaControlya\unitTests.png"/unitTests.png)
+
+### Диаграммы
+* **UseCase**
+!("C:\Users\Tima\Documents\SPO\SystemaControlya\useCase.png"/unitTests.png)
+
+* **ER**
+!("C:\Users\Tima\Documents\SPO\SystemaControlya\ER.png"/unitTests.png)

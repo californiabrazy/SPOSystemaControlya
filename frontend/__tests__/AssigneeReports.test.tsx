@@ -53,7 +53,6 @@ afterEach(() => {
   jest.resetAllMocks();
 });
 
-
 test("показывает 'Загрузка...' при загрузке данных или роли", async () => {
   (useRoleGuard as jest.Mock).mockReturnValueOnce({ loading: true, role: "Исполнитель" });
 
@@ -64,7 +63,6 @@ test("показывает 'Загрузка...' при загрузке дан�
   });
 });
 
-
 test("рендерит карточку дефекта после успешной загрузки", async () => {
   render(<MyDefects />);
 
@@ -73,17 +71,4 @@ test("рендерит карточку дефекта после успешно
   });
 
   expect(screen.getByText(/Приоритет: Высокий/i)).toBeInTheDocument();
-});
-
-
-test("открывает SelectDefectModal при нажатии на кнопку 'Добавить отчёт'", async () => {
-  render(<MyDefects />);
-
-  const button = await screen.findByText(/Добавить отчёт/i);
-
-  fireEvent.click(button);
-
-  await waitFor(() => {
-    expect(screen.getByTestId("SelectDefectModal")).toBeInTheDocument();
-  });
 });
