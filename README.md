@@ -55,11 +55,11 @@ docker-compose down
 * **TailwindCSS**
 
 ### Тесты
-!("C:\Users\Tima\Documents\SPO\SystemaControlya\unitTests.png"/unitTests.png)
+![Тесты](https://github.com/californiabrazy/SPOSystemaControlya/blob/master/unitTests.png)
 
 ### Диаграммы
 * **UseCase**
-!("C:\Users\Tima\Documents\SPO\SystemaControlya\useCase.png"/unitTests.png)
+![UseCase](https://github.com/californiabrazy/SPOSystemaControlya/blob/master/useCase.png)
 
 * **ER**
-!("C:\Users\Tima\Documents\SPO\SystemaControlya\ER.png"/unitTests.png)
+![ER](https://github.com/californiabrazy/SPOSystemaControlya/blob/master/ER.png)
